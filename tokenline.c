@@ -21,7 +21,8 @@
 #include "tokenline.h"
 
 #define INDENT   "   "
-#define NO_HELP  "No help available.\n"
+#define NO_HELP  "No help available."NL
+#define NL       "\r\n"
 
 static void backspace(t_tokenline *tl);
 static void set_line(t_tokenline *tl, char *line);
@@ -82,13 +83,13 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 	}
 	if (quoted) {
 		if (!silent)
-			tl->print(tl->user, "Unmatched quote.\n");
+			tl->print(tl->user, "Unmatched quote."NL);
 		unsplit_line(tl);
 		return FALSE;
 	}
 	if (*num_words == TL_MAX_WORDS) {
 		if (!silent)
-			tl->print(tl->user, "Too many words.\n");
+			tl->print(tl->user, "Too many words."NL);
 		unsplit_line(tl);
 		return FALSE;
 	}
@@ -189,7 +190,7 @@ static void history_show(t_tokenline *tl)
 			/* Yes we did */
 			tl->print(tl->user, tl->hist_buf);
 
-		tl->print(tl->user, "\n");
+		tl->print(tl->user, NL);
 	}
 
 }
@@ -318,7 +319,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 		word = tl->buf + words[w];
 		if (done) {
 			if (!complete_tokens)
-				tl->print(tl->user, "Too many arguments.\n");
+				tl->print(tl->user, "Too many arguments."NL);
 			return FALSE;
 		} else if (!arg_needed) {
 			/* Token needed. */
@@ -343,7 +344,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				}
 			} else {
 				if (!complete_tokens)
-					tl->print(tl->user, "Invalid command.\n");
+					tl->print(tl->user, "Invalid command."NL);
 				return FALSE;
 			}
 		} else {
@@ -353,7 +354,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				arg_int = strtol(word, &suffix, 0);
 				if (*suffix) {
 					if (!complete_tokens)
-						tl->print(tl->user, "Invalid value.\n");
+						tl->print(tl->user, "Invalid value."NL);
 					return FALSE;
 				}
 				p->tokens[cur_tp++] = TARG_INT;
@@ -365,7 +366,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				arg_float = strtof(word, &suffix);
 				if (*suffix) {
 					if (!complete_tokens)
-						tl->print(tl->user, "Invalid value.\n");
+						tl->print(tl->user, "Invalid value."NL);
 					return FALSE;
 				}
 				p->tokens[cur_tp++] = TARG_FLOAT;
@@ -387,7 +388,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 					p->last_token_entry = &arg_tokens[t_idx];
 				} else {
 					if (!complete_tokens)
-						tl->print(tl->user, "Invalid value.\n");
+						tl->print(tl->user, "Invalid value."NL);
 					return FALSE;
 				}
 				break;
@@ -396,7 +397,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 		}
 	}
 	if (arg_needed && !complete_tokens) {
-		tl->print(tl->user, "Missing argument.\n");
+		tl->print(tl->user, "Missing argument."NL);
 		return FALSE;
 	}
 
@@ -430,7 +431,7 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 
 	if (tl->parsed.last_token_entry->help) {
 		tl->print(tl->user, tl->parsed.last_token_entry->help);
-		tl->print(tl->user, "\n");
+		tl->print(tl->user, NL);
 	}
 
 	if (num_words == 1)
@@ -447,7 +448,7 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 				tl->print(tl->user, space + size);
 				tl->print(tl->user, tokens[i].help);
 			}
-			tl->print(tl->user, "\n");
+			tl->print(tl->user, NL);
 		}
 	}
 	if (!tl->parsed.last_token_entry->help && !tokens)
@@ -459,7 +460,7 @@ static void process_line(t_tokenline *tl)
 	t_token *tokens;
 	int words[TL_MAX_WORDS], num_words;
 
-	tl->print(tl->user, "\n");
+	tl->print(tl->user, NL);
 	do {
 		if (!tl->buf_len)
 			break;
@@ -542,12 +543,12 @@ static void complete(t_tokenline *tl)
 	reprompt = FALSE;
 	if (!tl->pos) {
 		/* Tab on an empty line: show all top-level commmands. */
-		tl->print(tl->user, "\n");
+		tl->print(tl->user, NL);
 		tokens = tl->token_levels[0];
 		for (i = 0; tokens[i].token; i++) {
 			tl->print(tl->user, INDENT);
 			tl->print(tl->user, tl->token_dict[tokens[i].token].tokenstr);
-			tl->print(tl->user, "\n");
+			tl->print(tl->user, NL);
 		}
 		reprompt = TRUE;
 	} else if (tl->buf[tl->pos - 1] != ' ') {
@@ -564,7 +565,7 @@ static void complete(t_tokenline *tl)
 						if (partial) {
 							/* Not the first match, print previous one. */
 							multiple = TRUE;
-							tl->print(tl->user, "\n");
+							tl->print(tl->user, NL);
 							tl->print(tl->user, INDENT);
 							tl->print(tl->user, tl->token_dict[partial].tokenstr);
 						}
@@ -574,10 +575,10 @@ static void complete(t_tokenline *tl)
 				if (partial) {
 					if (multiple) {
 						/* Last partial match. */
-						tl->print(tl->user, "\n");
+						tl->print(tl->user, NL);
 						tl->print(tl->user, INDENT);
 						tl->print(tl->user, tl->token_dict[partial].tokenstr);
-						tl->print(tl->user, "\n");
+						tl->print(tl->user, NL);
 						reprompt = TRUE;
 					} else {
 						for (i = strlen(word); i < strlen(tl->token_dict[partial].tokenstr); i++)
@@ -595,22 +596,22 @@ static void complete(t_tokenline *tl)
 			if (arg_needed && arg_needed != TARG_TOKEN) {
 				switch (arg_needed) {
 				case TARG_INT:
-					tl->print(tl->user, INDENT"\n<integer>\n");
+					tl->print(tl->user, INDENT NL"<integer>"NL);
 					break;
 				case TARG_FLOAT:
-					tl->print(tl->user, INDENT"\n<float>\n");
+					tl->print(tl->user, INDENT NL"<float>"NL);
 					break;
 				case TARG_STRING:
-					tl->print(tl->user, INDENT"\n<string>\n");
+					tl->print(tl->user, INDENT NL"<string>"NL);
 					break;
 				}
 				reprompt = TRUE;
 			} else if (tokens) {
-				tl->print(tl->user, "\n");
+				tl->print(tl->user, NL);
 				for (t = 0; tokens[t].token; t++) {
 					tl->print(tl->user, INDENT);
 					tl->print(tl->user, tl->token_dict[tokens[t].token].tokenstr);
-					tl->print(tl->user, "\n");
+					tl->print(tl->user, NL);
 					reprompt = TRUE;
 				}
 			}
