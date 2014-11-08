@@ -15,6 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef TOKENLINE_H
+#define TOKENLINE_H
+
 #include <stdint.h>
 
 #define TL_MAX_LINE_LEN         128
@@ -92,3 +95,4 @@ int tl_input(t_tokenline *tl, uint8_t c);
 #define FALSE 0
 #endif
 
+#endif
