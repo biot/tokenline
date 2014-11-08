@@ -116,10 +116,10 @@ The above definitions are enough to make this work:
     > help show hardware 
     Show hardware information
 
-This also gets your tab completion of all keywords, and lets you abbreviate
+This also gets you tab completion of all keywords, and lets you abbreviate
 keywords. The following are equivalent:
 
-    > show hardware"
+    > show hardware
     > sh hard
 
 
@@ -142,7 +142,7 @@ void tl_set_prompt(t_tokenline *tl, char *prompt)
   Change the prompt tokenline uses. The pointer is used from then on,
   so dynamic prompt changes can be done there as well.
 
-typedef void (*tl_callback)(t_tokenline_parsed tokenline);
+typedef void (*tl_callback)(void *user, t_tokenline_parsed p);
 void tl_set_callback(t_tokenline *tl, tl_callback callback)
 
   Set the function that will be called when a command is entered. The

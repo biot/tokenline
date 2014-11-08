@@ -33,10 +33,12 @@ void print(void *user, const char *str)
 	printf("%s", str);
 }
 
-static void dump_parsed(t_tokenline_parsed p)
+static void dump_parsed(void *user, t_tokenline_parsed p)
 {
 	float arg_float;
 	int arg_int, i;
+
+	(void)user;
 
 	for (i = 0; p.tokens[i]; i++) {
 		printf("%d: ", i);
