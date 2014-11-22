@@ -491,7 +491,7 @@ static void process_line(t_tokenline *tl)
 			break;
 		if (!strcmp(tl->buf + words[0], "help")) {
 			/* Tokenize with errors turned off. */
-			tokenize(tl, words, num_words, &tokens, NULL);
+			tokenize(tl, words + 1, num_words - 1, &tokens, NULL);
 			if (tl->parsed.last_token_entry) {
 				show_help(tl, words, num_words);
 			}
