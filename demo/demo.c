@@ -21,7 +21,6 @@
 #include <termios.h>
 
 #include "tokenline.h"
-#include "commands.h"
 
 extern t_token tokens[];
 extern t_token_dict dict[];

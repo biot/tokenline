@@ -21,7 +21,7 @@ TOKENLINE_SRC = tokenline.c
 TOKENLINE_DEP = $(TOKENLINE_SRC) tokenline.h 
 
 DEMO_SRC = demo/commands.c demo/demo.c
-DEMO_DEP = $(DEMO_SRC) demo/commands.h
+DEMO_DEP = $(DEMO_SRC)
 
 tokenline-demo: $(TOKENLINE_DEP) $(DEMO_DEP)
 	$(CC) $(FLAGS) -I. -Idemo $(TOKENLINE_SRC) $(DEMO_SRC) -o tokenline-demo
