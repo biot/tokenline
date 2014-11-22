@@ -72,6 +72,8 @@ enum token_argtypes {
 	TARG_INT = 10000,
 	TARG_FLOAT,
 	TARG_STRING,
+	/* Floating point number optionally followed by khz, mhz or ghz.  */
+	TARG_FREQ,
 	/* Argument is one of the tokens in subtokens. */
 	TARG_TOKEN,
 	TARG_HELP,

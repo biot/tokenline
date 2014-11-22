@@ -19,6 +19,7 @@
 
 enum {
 	T_SHOW = 1,
+	T_SET,
 	T_HARDWARE,
 	T_VERSION,
 	T_DEVICE,
@@ -26,10 +27,12 @@ enum {
 	T_HELP,
 	T_CPU,
 	T_MEMORY,
+	T_FREQUENCY,
 };
 t_token_dict dict[] = {
 	{ /* Dummy entry */ },
 	{ T_SHOW, "show" },
+	{ T_SET, "set" },
 	{ T_HARDWARE, "hardware" },
 	{ T_VERSION, "version" },
 	{ T_DEVICE, "device" },
@@ -37,6 +40,11 @@ t_token_dict dict[] = {
 	{ T_HELP, "help" },
 	{ T_CPU, "cpu" },
 	{ T_MEMORY, "memory" },
+	{ T_FREQUENCY, "frequency" },
+	{ }
+};
+t_token tokens_set[] = {
+	{ T_FREQUENCY, TARG_FREQ, NULL, "Frequency" },
 	{ }
 };
 t_token tokens_hardware[] = {
@@ -53,6 +61,7 @@ t_token tokens_show[] = {
 };
 t_token tokens[] = {
 	{ T_SHOW, 0, tokens_show, "Show information" },
+	{ T_SET, 0, tokens_set, "Set things" },
 	{ T_HELP, TARG_HELP, NULL, "Available commands" },
 	{ }
 };

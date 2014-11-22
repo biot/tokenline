@@ -58,6 +58,7 @@ Only the token field is required; all others are optional:
    be filled in here. The following are available:
      TARG_INT      integer
      TARG_FLOAT    floating-point value
+     TARG_FREQ     frequency,  as float followed by khz, mhz or ghz
      TARG_STRING   freeform string, should be quoted if it contains spaces
      TARG_TOKEN    one of a set of tokens in the subtokens field
      TARG_HELP     special type for the "help" command, see below

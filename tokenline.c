@@ -374,6 +374,26 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				memcpy(p->buf + cur_bufsize, &arg_float, sizeof(float));
 				cur_bufsize += sizeof(float);
 				break;
+			case TARG_FREQ:
+				arg_float = strtof(word, &suffix);
+				if (*suffix) {
+					if (!strcmp(suffix, "khz"))
+						arg_float *= 1000;
+					else if (!strcmp(suffix, "mhz"))
+						arg_float *= 1000000;
+					else if (!strcmp(suffix, "ghz"))
+						arg_float *= 1000000000L;
+					else {
+						if (!complete_tokens)
+							tl->print(tl->user, "Invalid value."NL);
+						return FALSE;
+					}
+				}
+				p->tokens[cur_tp++] = TARG_FREQ;
+				p->tokens[cur_tp++] = cur_bufsize;
+				memcpy(p->buf + cur_bufsize, &arg_float, sizeof(float));
+				cur_bufsize += sizeof(float);
+				break;
 			case TARG_STRING:
 				p->tokens[cur_tp++] = TARG_STRING;
 				p->tokens[cur_tp++] = cur_bufsize;
@@ -600,6 +620,9 @@ static void complete(t_tokenline *tl)
 					break;
 				case TARG_FLOAT:
 					tl->print(tl->user, INDENT NL"<float>"NL);
+					break;
+				case TARG_FREQ:
+					tl->print(tl->user, INDENT NL"<frequency>"NL);
 					break;
 				case TARG_STRING:
 					tl->print(tl->user, INDENT NL"<string>"NL);
