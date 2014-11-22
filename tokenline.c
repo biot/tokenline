@@ -327,12 +327,12 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				t = token_stack[cur_tsp][t_idx].token;
 				p->tokens[cur_tp++] = t;
 				p->last_token_entry = &token_stack[cur_tsp][t_idx];
-				if (token_stack[cur_tsp][t_idx].arg_type == TARG_HELP) {
+				if (token_stack[cur_tsp][t_idx].arg_type == T_ARG_HELP) {
 					/* Nothing to do, just keep cur_tsp from increasing. */
 				} else if (token_stack[cur_tsp][t_idx].arg_type) {
 					/* Token needs an argument */
 					arg_needed = token_stack[cur_tsp][t_idx].arg_type;
-					if (arg_needed == TARG_TOKEN)
+					if (arg_needed == T_ARG_TOKEN)
 						/* Argument is one of these subtokens. */
 						arg_tokens = token_stack[cur_tsp][t_idx].subtokens;
 				} else if (token_stack[cur_tsp][t_idx].subtokens) {
@@ -350,31 +350,31 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 		} else {
 			/* Parse word as the type in arg_needed */
 			switch (arg_needed) {
-			case TARG_INT:
+			case T_ARG_INT:
 				arg_int = strtol(word, &suffix, 0);
 				if (*suffix) {
 					if (!complete_tokens)
 						tl->print(tl->user, "Invalid value."NL);
 					return FALSE;
 				}
-				p->tokens[cur_tp++] = TARG_INT;
+				p->tokens[cur_tp++] = T_ARG_INT;
 				p->tokens[cur_tp++] = cur_bufsize;
 				memcpy(p->buf + cur_bufsize, &arg_int, sizeof(int));
 				cur_bufsize += sizeof(int);
 				break;
-			case TARG_FLOAT:
+			case T_ARG_FLOAT:
 				arg_float = strtof(word, &suffix);
 				if (*suffix) {
 					if (!complete_tokens)
 						tl->print(tl->user, "Invalid value."NL);
 					return FALSE;
 				}
-				p->tokens[cur_tp++] = TARG_FLOAT;
+				p->tokens[cur_tp++] = T_ARG_FLOAT;
 				p->tokens[cur_tp++] = cur_bufsize;
 				memcpy(p->buf + cur_bufsize, &arg_float, sizeof(float));
 				cur_bufsize += sizeof(float);
 				break;
-			case TARG_FREQ:
+			case T_ARG_FREQ:
 				arg_float = strtof(word, &suffix);
 				if (*suffix) {
 					if (!strcmp(suffix, "khz"))
@@ -389,20 +389,20 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						return FALSE;
 					}
 				}
-				p->tokens[cur_tp++] = TARG_FREQ;
+				p->tokens[cur_tp++] = T_ARG_FREQ;
 				p->tokens[cur_tp++] = cur_bufsize;
 				memcpy(p->buf + cur_bufsize, &arg_float, sizeof(float));
 				cur_bufsize += sizeof(float);
 				break;
-			case TARG_STRING:
-				p->tokens[cur_tp++] = TARG_STRING;
+			case T_ARG_STRING:
+				p->tokens[cur_tp++] = T_ARG_STRING;
 				p->tokens[cur_tp++] = cur_bufsize;
 				size = strlen(word) + 1;
 				memcpy(p->buf + cur_bufsize, word, size);
 				cur_bufsize += size;
 				p->buf[cur_bufsize] = 0;
 				break;
-			case TARG_TOKEN:
+			case T_ARG_TOKEN:
 				if ((t_idx = find_token(arg_tokens, tl->token_dict, word)) > -1) {
 					p->tokens[cur_tp++] = arg_tokens[t_idx].token;
 					p->last_token_entry = &arg_tokens[t_idx];
@@ -429,7 +429,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			*complete_tokens = NULL;
 		} else {
 			/* Fill in the completion token list. */
-			if (arg_needed == TARG_TOKEN)
+			if (arg_needed == T_ARG_TOKEN)
 				*complete_tokens = arg_tokens;
 			else
 				*complete_tokens = token_stack[cur_tsp];
@@ -613,18 +613,18 @@ static void complete(t_tokenline *tl)
 		if (!split_line(tl, words, &num_words, TRUE) || !num_words)
 			return;
 		if (tokenize(tl, words, num_words, &tokens, &arg_needed)) {
-			if (arg_needed && arg_needed != TARG_TOKEN) {
+			if (arg_needed && arg_needed != T_ARG_TOKEN) {
 				switch (arg_needed) {
-				case TARG_INT:
+				case T_ARG_INT:
 					tl->print(tl->user, INDENT NL"<integer>"NL);
 					break;
-				case TARG_FLOAT:
+				case T_ARG_FLOAT:
 					tl->print(tl->user, INDENT NL"<float>"NL);
 					break;
-				case TARG_FREQ:
+				case T_ARG_FREQ:
 					tl->print(tl->user, INDENT NL"<frequency>"NL);
 					break;
-				case TARG_STRING:
+				case T_ARG_STRING:
 					tl->print(tl->user, INDENT NL"<string>"NL);
 					break;
 				}

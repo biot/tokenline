@@ -44,7 +44,7 @@ t_token_dict dict[] = {
 	{ }
 };
 t_token tokens_set[] = {
-	{ T_FREQUENCY, TARG_FREQ, NULL, "Frequency" },
+	{ T_FREQUENCY, T_ARG_FREQ, NULL, "Frequency" },
 	{ }
 };
 t_token tokens_hardware[] = {
@@ -55,14 +55,14 @@ t_token tokens_hardware[] = {
 t_token tokens_show[] = {
 	{ T_HARDWARE, 0, tokens_hardware, "Hardware information" },
 	{ T_VERSION, 0, NULL, "Version" },
-	{ T_DEVICE, TARG_INT, NULL, "Device" },
-	{ T_DIRECTORY, TARG_STRING, NULL, "Directory" },
+	{ T_DEVICE, T_ARG_INT, NULL, "Device" },
+	{ T_DIRECTORY, T_ARG_STRING, NULL, "Directory" },
 	{ }
 };
 t_token tokens[] = {
 	{ T_SHOW, 0, tokens_show, "Show information" },
 	{ T_SET, 0, tokens_set, "Set things" },
-	{ T_HELP, TARG_HELP, NULL, "Available commands" },
+	{ T_HELP, T_ARG_HELP, NULL, "Available commands" },
 	{ }
 };
 

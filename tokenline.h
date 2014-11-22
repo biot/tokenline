@@ -69,14 +69,14 @@ typedef struct tokenline {
 
 /* These share a number space with the tokens. */
 enum token_argtypes {
-	TARG_INT = 10000,
-	TARG_FLOAT,
-	TARG_STRING,
+	T_ARG_INT = 10000,
+	T_ARG_FLOAT,
+	T_ARG_STRING,
 	/* Floating point number optionally followed by khz, mhz or ghz.  */
-	TARG_FREQ,
+	T_ARG_FREQ,
 	/* Argument is one of the tokens in subtokens. */
-	TARG_TOKEN,
-	TARG_HELP,
+	T_ARG_TOKEN,
+	T_ARG_HELP,
 };
 
 void tl_init(t_tokenline *tl, t_token *tokens_top, t_token_dict *token_dict,

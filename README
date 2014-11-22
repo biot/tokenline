@@ -56,16 +56,16 @@ Only the token field is required; all others are optional:
  - arg_type
    If the token takes an argument, The type of that argument should
    be filled in here. The following are available:
-     TARG_INT      integer
-     TARG_FLOAT    floating-point value
-     TARG_FREQ     frequency,  as float followed by khz, mhz or ghz
-     TARG_STRING   freeform string, should be quoted if it contains spaces
-     TARG_TOKEN    one of a set of tokens in the subtokens field
-     TARG_HELP     special type for the "help" command, see below
+     T_ARG_INT      integer
+     T_ARG_FLOAT    floating-point value
+     T_ARG_FREQ     frequency,  as float followed by khz, mhz or ghz
+     T_ARG_STRING   freeform string, should be quoted if it contains spaces
+     T_ARG_TOKEN    one of a set of tokens in the subtokens field
+     T_ARG_HELP     special type for the "help" command, see below
  - subtokens
    A t_token table contains a set of tokens to be used if this token is
    used. For example, The T_SHOW token above might have a set of subtokens
-   selecting the thing to show (see example). When not used with TARG_TOKEN,
+   selecting the thing to show (see example). When not used with T_ARG_TOKEN,
    this table defines a new context
  - help
    A freeform string which will be shown when help for this token is requested.
@@ -93,7 +93,7 @@ Here's a complete example implementing a "show" command:
 	};
 	t_token tokens[] = {
 		{ T_SHOW, 0, tokens_show, "Show information" },
-		{ T_HELP, TARG_HELP, NULL, "Available commands" },
+		{ T_HELP, T_ARG_HELP, NULL, "Available commands" },
 		{ }
 	};
 
@@ -101,7 +101,7 @@ If you define tokens with the command string "history" or "help", these
 will be handled internally, not passed on to your callback. The "history"
 command simply prints the command history for this session, and the "help"
 command provides help for the current context. Define the help command with
-the TARG_HELP type: this lets you do tab completion on keywords after the
+the T_ARG_HELP type: this lets you do tab completion on keywords after the
 help command.
 
 The above definitions are enough to make this work:
@@ -156,7 +156,7 @@ void tl_set_callback(t_tokenline *tl, tl_callback callback)
 
   The list of entered tokens is in the tokens field, terminated by a 0 (this
   is why token integers must not be 0). An argument is represented by one
-  of the TARG_* types (see above), followed by an integer representing an
+  of the T_ARG_* types (see above), followed by an integer representing an
   offset into the buf field where the value lives. This value is simply
   sizeof(int), sizeof(float) or a NULL-terminated string. For example,
   the following command line:
@@ -165,7 +165,7 @@ void tl_set_callback(t_tokenline *tl, tl_callback callback)
 
   Would be represented like this in the tokens field:
 
-	<T_SHOW> <T_DEVICE> <TARG_INT> 0 <T_FILE> <TARG_STRING> 4 0
+	<T_SHOW> <T_DEVICE> <T_ARG_INT> 0 <T_FILE> <T_ARG_STRING> 4 0
 
   With the buf field containing the following:
 

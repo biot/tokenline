@@ -42,19 +42,19 @@ static void dump_parsed(void *user, t_tokenline_parsed *p)
 	for (i = 0; p->tokens[i]; i++) {
 		printf("%d: ", i);
 		switch (p->tokens[i]) {
-		case TARG_INT:
+		case T_ARG_INT:
 			memcpy(&arg_int, p->buf + p->tokens[++i], sizeof(int));
 			printf("integer %d\n", arg_int);
 			break;
-		case TARG_FLOAT:
+		case T_ARG_FLOAT:
 			memcpy(&arg_float, p->buf + p->tokens[++i], sizeof(float));
 			printf("float %f\n", arg_float);
 			break;
-		case TARG_FREQ:
+		case T_ARG_FREQ:
 			memcpy(&arg_float, p->buf + p->tokens[++i], sizeof(float));
 			printf("frequency %f\n", arg_float);
 			break;
-		case TARG_STRING:
+		case T_ARG_STRING:
 			printf("string '%s'\n", p->buf + p->tokens[++i]);
 			break;
 		default:
