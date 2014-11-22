@@ -736,8 +736,9 @@ void tl_init(t_tokenline *tl, t_token *tokens_top, t_token_dict *token_dict,
 
 void tl_set_prompt(t_tokenline *tl, char *prompt)
 {
+	if (!tl->prompt)
+		tl->print(tl->user, prompt);
 	tl->prompt = prompt;
-	tl->print(tl->user, tl->prompt);
 }
 
 void tl_set_callback(t_tokenline *tl, tl_callback callback)
