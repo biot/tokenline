@@ -456,7 +456,7 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 
 	if (num_words == 1)
 		/* Just "help" -- global command overview. */
-		tokens = tl->token_levels[0];
+		tokens = tl->token_levels[tl->token_level];
 	else
 		tokens = tl->parsed.last_token_entry->subtokens;
 	if (tokens) {
@@ -564,7 +564,7 @@ static void complete(t_tokenline *tl)
 	if (!tl->pos) {
 		/* Tab on an empty line: show all top-level commmands. */
 		tl->print(tl->user, NL);
-		tokens = tl->token_levels[0];
+		tokens = tl->token_levels[tl->token_level];
 		for (i = 0; tokens[i].token; i++) {
 			tl->print(tl->user, INDENT);
 			tl->print(tl->user, tl->token_dict[tokens[i].token].tokenstr);
