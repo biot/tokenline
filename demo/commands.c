@@ -16,19 +16,8 @@
  */
 
 #include "tokenline.h"
+#include "commands.h"
 
-enum {
-	T_SHOW = 1,
-	T_SET,
-	T_HARDWARE,
-	T_VERSION,
-	T_DEVICE,
-	T_DIRECTORY,
-	T_HELP,
-	T_CPU,
-	T_MEMORY,
-	T_FREQUENCY,
-};
 t_token_dict dict[] = {
 	{ /* Dummy entry */ },
 	{ T_SHOW, "show" },
@@ -41,14 +30,31 @@ t_token_dict dict[] = {
 	{ T_CPU, "cpu" },
 	{ T_MEMORY, "memory" },
 	{ T_FREQUENCY, "frequency" },
+	{ T_MKDIR, "mkdir" },
+	{ T_LS, "ls" },
+	{ T_EXIT, "exit" },
 	{ }
 };
+
+t_token tokens_mode_device[] = {
+	{ T_SHOW,
+		.help = "Show device information" },
+	{ T_MKDIR,
+		.help = "Create directory" },
+	{ T_LS,
+		.help = "List files and directories" },
+	{ T_EXIT,
+		.help = "Exit device mode" },
+	{ }
+};
+
 t_token tokens_set[] = {
 	{ T_FREQUENCY,
 		.arg_type = T_ARG_FREQ,
 		.help = "Frequency" },
 	{ }
 };
+
 t_token tokens_hardware[] = {
 	{ T_CPU,
 		.help = "CPU" },
@@ -77,6 +83,8 @@ t_token tokens[] = {
 	{ T_SET,
 		.subtokens = tokens_set,
 		.help = "Set things" },
+	{ T_DEVICE,
+		.help = "Device mode" },
 	{ T_HELP,
 		.arg_type = T_ARG_HELP,
 		.help = "Available commands" },

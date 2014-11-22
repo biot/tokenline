@@ -19,11 +19,23 @@
 #include <string.h>
 #include <unistd.h>
 #include <termios.h>
+#include "commands.h"
 
 #include "tokenline.h"
 
 extern t_token tokens[];
 extern t_token_dict dict[];
+extern t_token tokens_mode_device[];
+
+enum {
+	MODE_TOP,
+	MODE_DEVICE,
+};
+
+struct demo_context {
+	t_tokenline *tl;
+	int mode;
+} ctx = { };
 
 void print(void *user, const char *str)
 {
@@ -34,11 +46,11 @@ void print(void *user, const char *str)
 
 static void dump_parsed(void *user, t_tokenline_parsed *p)
 {
+	struct demo_context *ctx;
 	float arg_float;
 	int arg_int, i;
 
-	(void)user;
-
+	ctx = user;
 	for (i = 0; p->tokens[i]; i++) {
 		printf("%d: ", i);
 		switch (p->tokens[i]) {
@@ -62,6 +74,20 @@ static void dump_parsed(void *user, t_tokenline_parsed *p)
 					dict[p->tokens[i]].tokenstr);
 		}
 	}
+
+	switch (p->tokens[0]) {
+	case T_DEVICE:
+		ctx->mode = MODE_DEVICE;
+		tl_set_prompt(ctx->tl, "device> ");
+		tl_mode_push(ctx->tl, tokens_mode_device);
+		break;
+	case T_EXIT:
+		ctx->mode = MODE_TOP;
+		tl_set_prompt(ctx->tl, "> ");
+		tl_mode_pop(ctx->tl);
+		break;
+	}
+
 }
 
 int main(int argc, char **argv)
@@ -79,7 +105,8 @@ int main(int argc, char **argv)
 	new_termios.c_cc[VMIN] = 1;
 	new_termios.c_cc[VTIME] = 0;
 	tcsetattr(0, TCSAFLUSH, &new_termios);
-	tl_init(&tl, tokens, dict, print, NULL);
+	ctx.tl = &tl;
+	tl_init(&tl, tokens, dict, print, &ctx);
 	tl_set_prompt(&tl, "> ");
 	tl_set_callback(&tl, dump_parsed);
 	while (TRUE) {
