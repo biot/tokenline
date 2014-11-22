@@ -132,11 +132,11 @@ typedef void (*tl_printfunc)(void *user, const char *str);
 void tl_init(t_tokenline *tl, t_token *tokens, t_token_dict *dict,
 		tl_printfunc printfunc, void *user)
 
-  Initializes the previously-allocated t_tokenline struct. This pointer
+  Initializes a previously-allocated t_tokenline struct. This pointer
   represents a single command-line instance, and will be passed to all
-  other API functions. tl_printfunc is the function called when tokenline
-  produces output. user is a pointer which will be passed along to your
-  printfunc.
+  other API functions. "tokens" is the initial token tree for this instance,
+  and "tl_printfunc" is the function called when tokenline produces output.
+  "user" is a pointer which will be passed along to your printfunc.
 
 void tl_set_prompt(t_tokenline *tl, char *prompt)
 
@@ -154,7 +154,7 @@ void tl_set_callback(t_tokenline *tl, tl_callback callback)
 		char buf[TL_MAX_LINE_LEN];
 	} t_tokenline_parsed;
 
-  The list of entered tokens is in the tokens field, terminated by a 0 (this
+  The list of entered tokens is in the tokens field, terminated by 0 (this
   is why token integers must not be 0). An argument is represented by one
   of the T_ARG_* types (see above), followed by an integer representing an
   offset into the buf field where the value lives. This value is simply
@@ -166,10 +166,23 @@ void tl_set_callback(t_tokenline *tl, tl_callback callback)
   Would be represented like this in the tokens field:
 
 	<T_SHOW> <T_DEVICE> <T_ARG_INT> 0 <T_FILE> <T_ARG_STRING> 4 0
+                                    ^                         ^
+        argument offset in buffer --|                       --|
 
   With the buf field containing the following:
 
 	00 00 00 01 66 6f 6f 20 62 61 72 00
+    ^           ^
+    0 (int)     4 (string)
+
+int tl_mode_push(t_tokenline *tl, t_token *tokens)
+
+  Switch to a new mode with its own token tree. The token tree is pushed
+  on to a stack.
+
+int tl_mode_pop(t_tokenline *tl)
+
+  Exit the current mode, and return to the previous token tree.
 
 int tl_input(t_tokenline *tl, uint8_t c)
 
