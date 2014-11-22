@@ -44,25 +44,42 @@ t_token_dict dict[] = {
 	{ }
 };
 t_token tokens_set[] = {
-	{ T_FREQUENCY, T_ARG_FREQ, NULL, "Frequency" },
+	{ T_FREQUENCY,
+		.arg_type = T_ARG_FREQ,
+		.help = "Frequency" },
 	{ }
 };
 t_token tokens_hardware[] = {
-	{ T_CPU, 0, NULL, "CPU" },
-	{ T_MEMORY, 0, NULL, "Memory" },
+	{ T_CPU,
+		.help = "CPU" },
+	{ T_MEMORY,
+		.help = "Memory" },
 	{ }
 };
 t_token tokens_show[] = {
-	{ T_HARDWARE, 0, tokens_hardware, "Hardware information" },
-	{ T_VERSION, 0, NULL, "Version" },
-	{ T_DEVICE, T_ARG_INT, NULL, "Device" },
-	{ T_DIRECTORY, T_ARG_STRING, NULL, "Directory" },
+	{ T_HARDWARE,
+		.subtokens = tokens_hardware,
+		.help = "Hardware information" },
+	{ T_VERSION,
+		.help = "Version" },
+	{ T_DEVICE,
+		.arg_type = T_ARG_INT,
+		.help = "Device" },
+	{ T_DIRECTORY,
+		.arg_type = T_ARG_STRING,
+		.help = "Directory" },
 	{ }
 };
 t_token tokens[] = {
-	{ T_SHOW, 0, tokens_show, "Show information" },
-	{ T_SET, 0, tokens_set, "Set things" },
-	{ T_HELP, T_ARG_HELP, NULL, "Available commands" },
+	{ T_SHOW,
+		.subtokens = tokens_show,
+		.help = "Show information" },
+	{ T_SET,
+		.subtokens = tokens_set,
+		.help = "Set things" },
+	{ T_HELP,
+		.arg_type = T_ARG_HELP,
+		.help = "Available commands" },
 	{ }
 };
 
