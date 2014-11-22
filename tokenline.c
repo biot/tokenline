@@ -501,7 +501,7 @@ static void process_line(t_tokenline *tl)
 			if (!tokenize(tl, words, num_words, NULL, NULL))
 				break;
 			if (tl->callback)
-				tl->callback(tl->user, tl->parsed);
+				tl->callback(tl->user, &tl->parsed);
 		}
 	} while (FALSE);
 

@@ -45,7 +45,7 @@ typedef struct tokenline_parsed {
 } t_tokenline_parsed;
 
 typedef void (*tl_printfunc)(void *user, const char *str);
-typedef void (*tl_callback)(void *user, t_tokenline_parsed p);
+typedef void (*tl_callback)(void *user, t_tokenline_parsed *p);
 typedef struct tokenline {
 	t_token *token_levels[TL_MAX_TOKEN_LEVELS];
 	int token_level;

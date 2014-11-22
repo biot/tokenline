@@ -32,34 +32,34 @@ void print(void *user, const char *str)
 	printf("%s", str);
 }
 
-static void dump_parsed(void *user, t_tokenline_parsed p)
+static void dump_parsed(void *user, t_tokenline_parsed *p)
 {
 	float arg_float;
 	int arg_int, i;
 
 	(void)user;
 
-	for (i = 0; p.tokens[i]; i++) {
+	for (i = 0; p->tokens[i]; i++) {
 		printf("%d: ", i);
-		switch (p.tokens[i]) {
+		switch (p->tokens[i]) {
 		case TARG_INT:
-			memcpy(&arg_int, p.buf + p.tokens[++i], sizeof(int));
+			memcpy(&arg_int, p->buf + p->tokens[++i], sizeof(int));
 			printf("integer %d\n", arg_int);
 			break;
 		case TARG_FLOAT:
-			memcpy(&arg_float, p.buf + p.tokens[++i], sizeof(float));
+			memcpy(&arg_float, p->buf + p->tokens[++i], sizeof(float));
 			printf("float %f\n", arg_float);
 			break;
 		case TARG_FREQ:
-			memcpy(&arg_float, p.buf + p.tokens[++i], sizeof(float));
+			memcpy(&arg_float, p->buf + p->tokens[++i], sizeof(float));
 			printf("frequency %f\n", arg_float);
 			break;
 		case TARG_STRING:
-			printf("string '%s'\n", p.buf + p.tokens[++i]);
+			printf("string '%s'\n", p->buf + p->tokens[++i]);
 			break;
 		default:
-			printf("token %d (%s)\n", p.tokens[i],
-					dict[p.tokens[i]].tokenstr);
+			printf("token %d (%s)\n", p->tokens[i],
+					dict[p->tokens[i]].tokenstr);
 		}
 	}
 }
