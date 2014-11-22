@@ -83,6 +83,8 @@ void tl_init(t_tokenline *tl, t_token *tokens_top, t_token_dict *token_dict,
 		tl_printfunc printfunc, void *user);
 void tl_set_prompt(t_tokenline *tl, char *prompt);
 void tl_set_callback(t_tokenline *tl, tl_callback callback);
+int tl_mode_push(t_tokenline *tl, t_token *tokens_mode);
+int tl_mode_pop(t_tokenline *tl);
 int tl_input(t_tokenline *tl, uint8_t c);
 
 #ifndef NULL

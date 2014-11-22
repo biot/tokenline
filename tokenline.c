@@ -746,6 +746,26 @@ void tl_set_callback(t_tokenline *tl, tl_callback callback)
 	tl->callback = callback;
 }
 
+int tl_mode_push(t_tokenline *tl, t_token *tokens)
+{
+	if (tl->token_level == TL_MAX_TOKEN_LEVELS - 1)
+		return FALSE;
+
+	tl->token_levels[++tl->token_level] = tokens;
+
+	return TRUE;
+}
+
+int tl_mode_pop(t_tokenline *tl)
+{
+	if (!tl->token_level)
+		return FALSE;
+
+	tl->token_level--;
+
+	return TRUE;
+}
+
 int tl_input(t_tokenline *tl, uint8_t c)
 {
 	int ret, i;
