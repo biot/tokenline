@@ -32,6 +32,7 @@ t_token_dict dict[] = {
 	{ T_FREQUENCY, "frequency" },
 	{ T_MKDIR, "mkdir" },
 	{ T_LS, "ls" },
+	{ T_TAP, "tap" },
 	{ T_EXIT, "exit" },
 	{ }
 };
@@ -85,6 +86,9 @@ t_token tokens[] = {
 		.help = "Set things" },
 	{ T_DEVICE,
 		.help = "Device mode" },
+	{ T_TAP,
+		.flags = T_FLAG_SUFFIX_TOKEN_DELIM_INT,
+		.help = "Tap" },
 	{ T_HELP,
 		.arg_type = T_ARG_HELP,
 		.help = "Available commands" },

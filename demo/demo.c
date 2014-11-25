@@ -48,6 +48,7 @@ static void dump_parsed(void *user, t_tokenline_parsed *p)
 {
 	struct demo_context *ctx;
 	float arg_float;
+	uint32_t arg_uint;
 	int arg_int, i;
 
 	ctx = user;
@@ -68,6 +69,10 @@ static void dump_parsed(void *user, t_tokenline_parsed *p)
 			break;
 		case T_ARG_STRING:
 			printf("string '%s'\n", p->buf + p->tokens[++i]);
+			break;
+		case T_ARG_TOKEN_SUFFIX_INT:
+			memcpy(&arg_uint, p->buf + p->tokens[++i], sizeof(uint32_t));
+			printf("token-suffixed integer %d\n", arg_uint);
 			break;
 		default:
 			printf("token %d (%s)\n", p->tokens[i],

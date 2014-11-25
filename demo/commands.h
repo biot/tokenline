@@ -28,6 +28,7 @@ enum {
 	T_FREQUENCY,
 	T_MKDIR,
 	T_LS,
+	T_TAP,
 	T_EXIT,
 };
 
