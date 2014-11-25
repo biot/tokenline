@@ -294,6 +294,30 @@ static int find_token(t_token *tokens, t_token_dict *token_dict, char *word)
 }
 
 /*
+ * Converts string to uint32_t. Takes decimal, hex prefixed with 0x,
+ * binary prefixed with 0b and octal prefixed with 0.
+ */
+static uint32_t strtouint(char *s)
+{
+	uint32_t out;
+	int i;
+
+	if (strncmp(s, "0b", 2)) {
+		out = strtoul(s, NULL, 0);
+	} else {
+		out = 0;
+		for (i = 2; s[i]; i++) {
+			if (s[i] != '0' && s[i] != '1')
+				return 0;
+			out <<= 1;
+			out |= s[i] - 0x30;
+		}
+	}
+
+	return out;
+}
+
+/*
  * Tokenize the current set of NULL-terminated words, allowing for
  * one token sublevel starting from the current token level.
  */
@@ -326,7 +350,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			/* Token needed. */
 			if ((suffix = strchr(word, TL_TOKEN_DELIMITER))) {
 				*suffix++ = 0;
-				suffix_uint = strtoul(suffix, NULL, 0);
+				suffix_uint = strtouint(suffix);
 			} else {
 				suffix_uint = 0;
 			}
@@ -341,7 +365,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 							tl->print(tl->user, "Token suffix not allowed."NL);
 						return FALSE;
 					}
-					if (suffix_uint) {
+					if (suffix_uint > 1) {
 						p->tokens[cur_tp++] = T_ARG_TOKEN_SUFFIX_INT;
 						p->tokens[cur_tp++] = cur_bufsize;
 						memcpy(p->buf + cur_bufsize, &suffix_uint, sizeof(uint32_t));
