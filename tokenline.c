@@ -303,6 +303,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 	t_token *token_stack[8], *arg_tokens;
 	t_tokenline_parsed *p;
 	float arg_float;
+	uint32_t suffix_uint;
 	int done, arg_needed, arg_int, w, t, t_idx, size;
 	int cur_tsp, cur_tp, cur_bufsize;
 	char *word, *suffix;
@@ -323,10 +324,32 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			return FALSE;
 		} else if (!arg_needed) {
 			/* Token needed. */
+			if ((suffix = strchr(word, TL_TOKEN_DELIMITER))) {
+				*suffix++ = 0;
+				suffix_uint = strtoul(suffix, NULL, 0);
+			} else {
+				suffix_uint = 0;
+			}
+
 			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1) {
 				t = token_stack[cur_tsp][t_idx].token;
 				p->tokens[cur_tp++] = t;
+				if (suffix) {
+					if (!(token_stack[cur_tsp][t_idx].flags &
+							T_FLAG_SUFFIX_TOKEN_DELIM_INT)) {
+						if (!complete_tokens)
+							tl->print(tl->user, "Token suffix not allowed."NL);
+						return FALSE;
+					}
+					if (suffix_uint) {
+						p->tokens[cur_tp++] = T_ARG_TOKEN_SUFFIX_INT;
+						p->tokens[cur_tp++] = cur_bufsize;
+						memcpy(p->buf + cur_bufsize, &suffix_uint, sizeof(uint32_t));
+						cur_bufsize += sizeof(uint32_t);
+					}
+				}
 				p->last_token_entry = &token_stack[cur_tsp][t_idx];
+
 				if (token_stack[cur_tsp][t_idx].arg_type == T_ARG_HELP) {
 					/* Nothing to do, just keep cur_tsp from increasing. */
 				} else if (token_stack[cur_tsp][t_idx].arg_type) {

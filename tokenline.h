@@ -25,6 +25,12 @@
 #define TL_MAX_WORDS            64
 #define TL_MAX_TOKEN_LEVELS     8
 #define TL_MAX_HISTORY_SIZE     512
+#define TL_TOKEN_DELIMITER      ':'
+
+enum {
+	/* Token can be optionally suffixed by delimiter and integer. */
+	T_FLAG_SUFFIX_TOKEN_DELIM_INT,
+};
 
 typedef struct token_dict {
 	int token;
@@ -77,6 +83,8 @@ enum token_argtypes {
 	T_ARG_FREQ,
 	/* Argument is one of the tokens in subtokens. */
 	T_ARG_TOKEN,
+	/* Integer argument suffixed to token with delimiter and integer. */
+	T_ARG_TOKEN_SUFFIX_INT,
 	T_ARG_HELP,
 };
 
