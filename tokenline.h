@@ -29,7 +29,7 @@
 
 enum {
 	/* Token can be optionally suffixed by delimiter and integer. */
-	T_FLAG_SUFFIX_TOKEN_DELIM_INT,
+	T_FLAG_SUFFIX_TOKEN_DELIM_INT = (1 << 0),
 };
 
 typedef struct token_dict {
