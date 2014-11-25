@@ -33,7 +33,8 @@ typedef struct token_dict {
 
 typedef struct token {
 	int token;
-	int arg_type;
+	uint16_t arg_type;
+	uint16_t flags;
 	struct token *subtokens;
 	char *help;
 } t_token;
