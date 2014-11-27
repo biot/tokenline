@@ -264,21 +264,70 @@ static void history_add(t_tokenline *tl)
 				strlen(tl->hist_buf + tl->hist_begin));
 }
 
+/*
+ * Converts string to uint32_t. Takes decimal, hex prefixed with 0x,
+ * binary prefixed with 0b and octal prefixed with 0. Returns FALSE
+ * if conversion in any of these fails.
+ */
+static int str_to_uint(char *s, uint32_t *out)
+{
+	int i;
+	char *suffix;
+
+	if (strncmp(s, "0b", 2)) {
+		*out = strtoul(s, &suffix, 0);
+		if (*suffix != '\0')
+			return FALSE;
+	} else {
+		*out = 0;
+		for (i = 2; s[i]; i++) {
+			if (s[i] != '0' && s[i] != '1')
+				return FALSE;
+			*out <<= 1;
+			*out |= s[i] - 0x30;
+		}
+	}
+
+	return TRUE;
+}
+
+static char *arg_type_to_string(int arg_type)
+{
+	if (arg_type == T_ARG_INT)
+		return "<integer>";
+	else if (arg_type == T_ARG_FLOAT)
+		return "<float>";
+	else if (arg_type == T_ARG_FREQ)
+		return "<frequency>";
+	else if (arg_type == T_ARG_STRING)
+		return "<string>";
+
+	return NULL;
+}
+
 static int find_token(t_token *tokens, t_token_dict *token_dict, char *word)
 {
+	uint32_t arg_uint;
 	int token, partial, i;
 
-	/* FInd exact match. */
+	/* Find exact match. */
 	for (i = 0; tokens[i].token; i++) {
 		token = tokens[i].token;
-		if (!strcmp(word, token_dict[token].tokenstr))
-			return i;
+		if (token == T_ARG_INT) {
+			if (str_to_uint(word, &arg_uint))
+				return i;
+		} else {
+			if (!strcmp(word, token_dict[token].tokenstr))
+				return i;
+		}
 	}
 
 	/* Find partial match. */
 	partial = -1;
 	for (i = 0; tokens[i].token; i++) {
 		token = tokens[i].token;
+		if (token >= T_ARG_INT)
+			continue;
 		if (strlen(word) >= strlen(token_dict[token].tokenstr))
 			continue;
 		if (!strncmp(word, token_dict[token].tokenstr, strlen(word))) {
@@ -294,30 +343,6 @@ static int find_token(t_token *tokens, t_token_dict *token_dict, char *word)
 }
 
 /*
- * Converts string to uint32_t. Takes decimal, hex prefixed with 0x,
- * binary prefixed with 0b and octal prefixed with 0.
- */
-static uint32_t strtouint(char *s)
-{
-	uint32_t out;
-	int i;
-
-	if (strncmp(s, "0b", 2)) {
-		out = strtoul(s, NULL, 0);
-	} else {
-		out = 0;
-		for (i = 2; s[i]; i++) {
-			if (s[i] != '0' && s[i] != '1')
-				return 0;
-			out <<= 1;
-			out |= s[i] - 0x30;
-		}
-	}
-
-	return out;
-}
-
-/*
  * Tokenize the current set of NULL-terminated words, allowing for
  * one token sublevel starting from the current token level.
  */
@@ -327,7 +352,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 	t_token *token_stack[8], *arg_tokens;
 	t_tokenline_parsed *p;
 	float arg_float;
-	uint32_t suffix_uint;
+	uint32_t arg_uint, suffix_uint;
 	int done, arg_needed, arg_int, w, t, t_idx, size;
 	int cur_tsp, cur_tp, cur_bufsize;
 	char *word, *suffix;
@@ -350,7 +375,10 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			/* Token needed. */
 			if ((suffix = strchr(word, TL_TOKEN_DELIMITER))) {
 				*suffix++ = 0;
-				suffix_uint = strtouint(suffix);
+				if (!str_to_uint(suffix, &suffix_uint)) {
+					tl->print(tl->user, "Invalid number."NL);
+					return FALSE;
+				}
 			} else {
 				suffix_uint = 0;
 			}
@@ -358,6 +386,13 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1) {
 				t = token_stack[cur_tsp][t_idx].token;
 				p->tokens[cur_tp++] = t;
+				if (t == T_ARG_INT) {
+					/* Integer token. */
+					str_to_uint(word, &arg_uint);
+					p->tokens[cur_tp++] = cur_bufsize;
+					memcpy(p->buf + cur_bufsize, &arg_uint, sizeof(uint32_t));
+					cur_bufsize += sizeof(uint32_t);
+				}
 				if (suffix) {
 					if (!(token_stack[cur_tsp][t_idx].flags &
 							T_FLAG_SUFFIX_TOKEN_DELIM_INT)) {
@@ -491,8 +526,8 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 static void show_help(t_tokenline *tl, int *words, int num_words)
 {
 	t_token *tokens;
-	int size, i;
-	char space[] = "               ";
+	int i;
+	char *s, space[] = "               ";
 
 	(void)words;
 
@@ -509,10 +544,13 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 	if (tokens) {
 		for (i = 0; tokens[i].token; i++) {
 			tl->print(tl->user, INDENT);
-			tl->print(tl->user, tl->token_dict[tokens[i].token].tokenstr);
+			if (tokens[i].token < T_ARG_INT)
+				s = tl->token_dict[tokens[i].token].tokenstr;
+			else
+				s = arg_type_to_string(tokens[i].token);
+			tl->print(tl->user, s);
 			if (tokens[i].help) {
-				size = strlen(tl->token_dict[tokens[i].token].tokenstr);
-				tl->print(tl->user, space + size);
+				tl->print(tl->user, space + strlen(s));
 				tl->print(tl->user, tokens[i].help);
 			}
 			tl->print(tl->user, NL);
@@ -614,7 +652,10 @@ static void complete(t_tokenline *tl)
 		tokens = tl->token_levels[tl->token_level];
 		for (i = 0; tokens[i].token; i++) {
 			tl->print(tl->user, INDENT);
-			tl->print(tl->user, tl->token_dict[tokens[i].token].tokenstr);
+			if (tokens[i].token < T_ARG_INT)
+				tl->print(tl->user, tl->token_dict[tokens[i].token].tokenstr);
+			else
+				tl->print(tl->user, arg_type_to_string(tokens[i].token));
 			tl->print(tl->user, NL);
 		}
 		reprompt = TRUE;
@@ -628,6 +669,8 @@ static void complete(t_tokenline *tl)
 				partial = 0;
 				multiple = FALSE;
 				for (t = 0; tokens[t].token; t++) {
+					if (tokens[t].token >= T_ARG_INT)
+						continue;
 					if (!strncmp(word, tl->token_dict[tokens[t].token].tokenstr, strlen(word))) {
 						if (partial) {
 							/* Not the first match, print previous one. */
@@ -661,24 +704,15 @@ static void complete(t_tokenline *tl)
 			return;
 		if (tokenize(tl, words, num_words, &tokens, &arg_needed)) {
 			if (arg_needed && arg_needed != T_ARG_TOKEN) {
-				switch (arg_needed) {
-				case T_ARG_INT:
-					tl->print(tl->user, INDENT NL"<integer>"NL);
-					break;
-				case T_ARG_FLOAT:
-					tl->print(tl->user, INDENT NL"<float>"NL);
-					break;
-				case T_ARG_FREQ:
-					tl->print(tl->user, INDENT NL"<frequency>"NL);
-					break;
-				case T_ARG_STRING:
-					tl->print(tl->user, INDENT NL"<string>"NL);
-					break;
-				}
+				tl->print(tl->user, INDENT NL);
+				tl->print(tl->user, arg_type_to_string(arg_needed));
+				tl->print(tl->user, NL);
 				reprompt = TRUE;
 			} else if (tokens) {
 				tl->print(tl->user, NL);
 				for (t = 0; tokens[t].token; t++) {
+					if (tokens[t].token >= T_ARG_INT)
+						continue;
 					tl->print(tl->user, INDENT);
 					tl->print(tl->user, tl->token_dict[tokens[t].token].tokenstr);
 					tl->print(tl->user, NL);
