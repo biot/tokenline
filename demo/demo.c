@@ -26,10 +26,12 @@
 extern t_token tokens[];
 extern t_token_dict dict[];
 extern t_token tokens_mode_device[];
+extern t_token tokens_mode_calc[];
 
 enum {
 	MODE_TOP,
 	MODE_DEVICE,
+	MODE_CALC,
 };
 
 struct demo_context {
@@ -85,6 +87,11 @@ static void dump_parsed(void *user, t_tokenline_parsed *p)
 		ctx->mode = MODE_DEVICE;
 		tl_set_prompt(ctx->tl, "device> ");
 		tl_mode_push(ctx->tl, tokens_mode_device);
+		break;
+	case T_CALC:
+		ctx->mode = MODE_CALC;
+		tl_set_prompt(ctx->tl, "calc> ");
+		tl_mode_push(ctx->tl, tokens_mode_calc);
 		break;
 	case T_EXIT:
 		ctx->mode = MODE_TOP;

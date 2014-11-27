@@ -26,9 +26,12 @@ enum {
 	T_CPU,
 	T_MEMORY,
 	T_FREQUENCY,
+	T_NUMBER,
 	T_MKDIR,
 	T_LS,
 	T_TAP,
+	T_CALC,
+	T_PLUS,
 	T_EXIT,
 };
 

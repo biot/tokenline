@@ -30,11 +30,22 @@ t_token_dict dict[] = {
 	{ T_CPU, "cpu" },
 	{ T_MEMORY, "memory" },
 	{ T_FREQUENCY, "frequency" },
+	{ T_NUMBER, "number" },
 	{ T_MKDIR, "mkdir" },
 	{ T_LS, "ls" },
 	{ T_TAP, "tap" },
+	{ T_CALC, "calc" },
+	{ T_PLUS, "+" },
 	{ T_EXIT, "exit" },
 	{ }
+};
+
+t_token tokens_mode_calc[] = {
+	{ T_ARG_INT,
+		.help = "Operand" },
+	{ T_PLUS },
+	{ T_EXIT,
+		.help = "Exit calc mode" },
 };
 
 t_token tokens_mode_device[] = {
@@ -53,6 +64,9 @@ t_token tokens_set[] = {
 	{ T_FREQUENCY,
 		.arg_type = T_ARG_FREQ,
 		.help = "Frequency" },
+	{ T_NUMBER,
+		.arg_type = T_ARG_INT,
+		.help = "Number" },
 	{ }
 };
 
@@ -89,6 +103,9 @@ t_token tokens[] = {
 	{ T_TAP,
 		.flags = T_FLAG_SUFFIX_TOKEN_DELIM_INT,
 		.help = "Tap" },
+	{ T_CALC,
+		.subtokens = tokens_mode_calc,
+		.help = "Calculator" },
 	{ T_HELP,
 		.arg_type = T_ARG_HELP,
 		.help = "Available commands" },
