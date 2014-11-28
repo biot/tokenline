@@ -24,7 +24,8 @@
 #define NO_HELP  "No help available."NL
 #define NL       "\r\n"
 
-static void backspace(t_tokenline *tl);
+static void line_clear(t_tokenline *tl);
+static void line_backspace(t_tokenline *tl);
 static void set_line(t_tokenline *tl, char *line);
 
 
@@ -121,16 +122,6 @@ static int history_previous(t_tokenline *tl, int entry)
 	return prev;
 }
 
-static void delete_line(t_tokenline *tl)
-{
-	while (tl->pos < tl->buf_len) {
-		tl->pos++;
-		tl->print(tl->user, "\x1b\x5b\x43");
-	}
-	while (tl->pos)
-		backspace(tl);
-}
-
 static void history_up(t_tokenline *tl)
 {
 	int entry;
@@ -141,7 +132,7 @@ static void history_up(t_tokenline *tl)
 		entry = history_previous(tl, tl->hist_step);
 	if (entry == -1)
 		return;
-	delete_line(tl);
+	line_clear(tl);
 	set_line(tl, tl->hist_buf + entry);
 	tl->hist_step = entry;
 }
@@ -153,7 +144,7 @@ static void history_down(t_tokenline *tl)
 	if (tl->hist_step == -1)
 		return;
 
-	delete_line(tl);
+	line_clear(tl);
 	if (tl->hist_step == tl->hist_end) {
 		tl->hist_step = -1;
 		return;
@@ -731,7 +722,17 @@ static void complete(t_tokenline *tl)
 	}
 }
 
-static void backspace(t_tokenline *tl)
+static void line_clear(t_tokenline *tl)
+{
+	while (tl->pos < tl->buf_len) {
+		tl->pos++;
+		tl->print(tl->user, "\x1b\x5b\x43");
+	}
+	while (tl->pos)
+		line_backspace(tl);
+}
+
+static void line_backspace(t_tokenline *tl)
 {
 	int i;
 
@@ -751,7 +752,7 @@ static void backspace(t_tokenline *tl)
 	tl->pos--;
 }
 
-static void home(t_tokenline *tl)
+static void line_home(t_tokenline *tl)
 {
 	while (tl->pos) {
 		tl->pos--;
@@ -759,7 +760,7 @@ static void home(t_tokenline *tl)
 	}
 }
 
-static void end(t_tokenline *tl)
+static void line_end(t_tokenline *tl)
 {
 	while (tl->pos < tl->buf_len) {
 		tl->pos++;
@@ -767,28 +768,33 @@ static void end(t_tokenline *tl)
 	}
 }
 
-static int process_escape(t_tokenline *tl)
+static void line_delete_char(t_tokenline *tl)
 {
 	int i;
 
+	if (tl->pos < tl->buf_len) {
+		memmove(tl->buf + tl->pos, tl->buf + tl->pos + 1,
+				tl->buf_len - tl->pos);
+		tl->print(tl->user, tl->buf + tl->pos);
+		tl->print(tl->user, " ");
+		for (i = 0; i < tl->buf_len - tl->pos; i++)
+			tl->print(tl->user, "\x1b\x5b\x44");
+		tl->buf_len--;
+	}
+}
+
+static int process_escape(t_tokenline *tl)
+{
 	if (tl->escape_len == 4) {
 		if (!strncmp(tl->escape, "\x1b\x5b\x33\x7e", 4)) {
 			/* Delete */
-			if (tl->pos < tl->buf_len) {
-				memmove(tl->buf + tl->pos, tl->buf + tl->pos + 1,
-						tl->buf_len - tl->pos);
-				tl->print(tl->user, tl->buf + tl->pos);
-				tl->print(tl->user, " ");
-				for (i = 0; i < tl->buf_len - tl->pos; i++)
-					tl->print(tl->user, "\x1b\x5b\x44");
-				tl->buf_len--;
-			}
+			line_delete_char(tl);
 		} else if (!strncmp(tl->escape, "\x1b\x5b\x31\x7e", 4)) {
 			/* Home */
-			home(tl);
+			line_home(tl);
 		} else if (!strncmp(tl->escape, "\x1b\x5b\x34\x7e", 4)) {
 			/* End */
-			end(tl);
+			line_end(tl);
 		}
 	} else if (tl->escape_len == 3) {
 		if (!strncmp(tl->escape, "\x1b\x5b\x41", 3)) {
@@ -811,10 +817,10 @@ static int process_escape(t_tokenline *tl)
 			}
 		} else if (!strncmp(tl->escape, "\x1b\x4f\x48", 3)) {
 			/* Home */
-			home(tl);
+			line_home(tl);
 		} else if (!strncmp(tl->escape, "\x1b\x4f\x46", 3)) {
 			/* End */
-			end(tl);
+			line_end(tl);
 		} else
 			return FALSE;
 	} else
@@ -898,7 +904,7 @@ int tl_input(t_tokenline *tl, uint8_t c)
 	case 0x7f:
 		/* Backspace */
 		if (tl->pos)
-			backspace(tl);
+			line_backspace(tl);
 		break;
 	case 0x01:
 		/* Ctrl-a */
@@ -912,6 +918,14 @@ int tl_input(t_tokenline *tl, uint8_t c)
 		tl->print(tl->user, "^C");
 		tl->buf_len = 0;
 		process_line(tl);
+		break;
+	case 0x04:
+		/* Ctrl-d */
+		if (tl->buf_len)
+			line_delete_char(tl);
+		else
+			/* Ctrl-d on empty line exits. */
+			ret = FALSE;
 		break;
 	case 0x05:
 		/* Ctrl-e */
@@ -948,14 +962,9 @@ int tl_input(t_tokenline *tl, uint8_t c)
 	case 0x17:
 		/* Ctrl-w */
 		while (tl->pos && tl->buf[tl->pos - 1] == ' ')
-			backspace(tl);
+			line_backspace(tl);
 		while (tl->pos && tl->buf[tl->pos - 1] != ' ')
-			backspace(tl);
-		break;
-	case 0x04:
-		/* Ctrl-d on empty line exits. */
-		if (!tl->buf_len)
-			ret = FALSE;
+			line_backspace(tl);
 		break;
 	default:
 		if (c >= 0x20 && c <= 0x7e) {
