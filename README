@@ -47,7 +47,8 @@ The following struct defines a single token:
 
 	typedef struct token {
 		int token;
-		int arg_type;
+		uint16_t arg_type;
+		uint16_t flags;
 		struct token *subtokens;
 		char *help;
 	} t_token;
@@ -62,6 +63,14 @@ Only the token field is required; all others are optional:
      T_ARG_STRING   freeform string, should be quoted if it contains spaces
      T_ARG_TOKEN    one of a set of tokens in the subtokens field
      T_ARG_HELP     special type for the "help" command, see below
+ - flags
+   Flags to change behavior on this token or its arguments. The currently
+   defined flags are:
+     T_FLAG_SUFFIX_TOKEN_DELIM_INT
+        This allows the token to be suffixed with TL_TOKEN_DELIMITER
+        (set to : by default), followed by an integer. If this syntax is
+        used, the result will show up on the parsed token list like this:
+           <T_ARG_TOKEN_SUFFIX_INT> (integer)
  - subtokens
    A t_token table contains a set of tokens to be used if this token is
    used. For example, The T_SHOW token above might have a set of subtokens
@@ -69,6 +78,10 @@ Only the token field is required; all others are optional:
    this table defines a new context.
  - help
    A freeform string which will be shown when help for this token is requested.
+
+The T_ARG_INT type may be specified as a token in the table: this allows
+free-standing numbers to be entered on the command line. See the demo
+application's 'calc' command for an example.
 
 Here's a complete example implementing a "show" command:
 
