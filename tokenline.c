@@ -596,6 +596,7 @@ static void process_line(t_tokenline *tl)
 	tl->buf_len = 0;
 	tl->escape_len = 0;
 	tl->pos = 0;
+	tl->hist_step = -1;
 	tl->print(tl->user, tl->prompt);
 }
 
