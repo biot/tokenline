@@ -26,6 +26,7 @@
 #define TL_MAX_TOKEN_LEVELS     8
 #define TL_MAX_HISTORY_SIZE     512
 #define TL_TOKEN_DELIMITER      ':'
+#define TL_ONE_COMMAND_PER_LINE FALSE
 
 enum {
 	/* Token can be optionally suffixed by delimiter and integer. */
@@ -66,6 +67,7 @@ typedef struct tokenline {
 	char *prompt;
 	tl_callback callback;
 	int pos;
+	int one_command_per_line;
 	t_tokenline_parsed parsed;
 	int hist_step;
 	int hist_begin;

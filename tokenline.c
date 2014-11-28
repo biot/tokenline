@@ -418,11 +418,12 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						/* Argument is one of these subtokens. */
 						arg_tokens = token_stack[cur_tsp][t_idx].subtokens;
 				} else if (token_stack[cur_tsp][t_idx].subtokens) {
+					/* Switch to a new token set. */
 					token_stack[cur_tsp + 1] = token_stack[cur_tsp][t_idx].subtokens;
 					cur_tsp++;
 				} else {
 					/* Not expecting any more arguments or tokens. */
-					done = TRUE;
+					done = tl->one_command_per_line;
 				}
 			} else {
 				if (!complete_tokens)
@@ -496,6 +497,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				break;
 			}
 			arg_needed = 0;
+			done = tl->one_command_per_line;
 		}
 	}
 	if (arg_needed && !complete_tokens) {
@@ -812,6 +814,7 @@ void tl_init(t_tokenline *tl, t_token *tokens_top, t_token_dict *token_dict,
 	tl->token_dict = token_dict;
 	tl->print = printfunc;
 	tl->user = user;
+	tl->one_command_per_line = TL_ONE_COMMAND_PER_LINE;
 	tl->hist_step = -1;
 }
 
