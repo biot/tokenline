@@ -750,6 +750,22 @@ static void backspace(t_tokenline *tl)
 	tl->pos--;
 }
 
+static void home(t_tokenline *tl)
+{
+	while (tl->pos) {
+		tl->pos--;
+		tl->print(tl->user, "\x1b\x5b\x44");
+	}
+}
+
+static void end(t_tokenline *tl)
+{
+	while (tl->pos < tl->buf_len) {
+		tl->pos++;
+		tl->print(tl->user, "\x1b\x5b\x43");
+	}
+}
+
 static int process_escape(t_tokenline *tl)
 {
 	int i;
@@ -766,6 +782,12 @@ static int process_escape(t_tokenline *tl)
 					tl->print(tl->user, "\x1b\x5b\x44");
 				tl->buf_len--;
 			}
+		} else if (!strncmp(tl->escape, "\x1b\x5b\x31\x7e", 4)) {
+			/* Home */
+			home(tl);
+		} else if (!strncmp(tl->escape, "\x1b\x5b\x34\x7e", 4)) {
+			/* End */
+			end(tl);
 		}
 	} else if (tl->escape_len == 3) {
 		if (!strncmp(tl->escape, "\x1b\x5b\x41", 3)) {
@@ -788,16 +810,10 @@ static int process_escape(t_tokenline *tl)
 			}
 		} else if (!strncmp(tl->escape, "\x1b\x4f\x48", 3)) {
 			/* Home */
-			while (tl->pos) {
-				tl->pos--;
-				tl->print(tl->user, "\x1b\x5b\x44");
-			}
+			home(tl);
 		} else if (!strncmp(tl->escape, "\x1b\x4f\x46", 3)) {
 			/* End */
-			while (tl->pos < tl->buf_len) {
-				tl->pos++;
-				tl->print(tl->user, "\x1b\x5b\x43");
-			}
+			end(tl);
 		} else
 			return FALSE;
 	} else
