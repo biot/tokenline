@@ -33,5 +33,8 @@ enum {
 	T_CALC,
 	T_PLUS,
 	T_EXIT,
+	T_LED,
+	T_ON,
+	T_OFF,
 };
 

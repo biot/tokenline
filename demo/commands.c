@@ -37,6 +37,9 @@ t_token_dict dict[] = {
 	{ T_CALC, "calc" },
 	{ T_PLUS, "+" },
 	{ T_EXIT, "exit" },
+	{ T_LED, "led" },
+	{ T_ON, "on" },
+	{ T_OFF, "off" },
 	{ }
 };
 
@@ -48,6 +51,11 @@ t_token tokens_mode_calc[] = {
 		.help = "Exit calc mode" },
 };
 
+t_token tokens_on_off[] = {
+	{ T_ON },
+	{ T_OFF },
+};
+
 t_token tokens_mode_device[] = {
 	{ T_SHOW,
 		.help = "Show device information" },
@@ -55,6 +63,10 @@ t_token tokens_mode_device[] = {
 		.help = "Create directory" },
 	{ T_LS,
 		.help = "List files and directories" },
+	{ T_LED,
+		.arg_type = T_ARG_TOKEN,
+		.subtokens = tokens_on_off,
+		.help = "LED control" },
 	{ T_EXIT,
 		.help = "Exit device mode" },
 	{ }
