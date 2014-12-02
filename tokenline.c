@@ -307,6 +307,8 @@ static int find_token(t_token *tokens, t_token_dict *token_dict, char *word)
 		if (token == T_ARG_INT) {
 			if (str_to_uint(word, &arg_uint))
 				return i;
+		} else if (token > T_ARG_INT) {
+			continue;
 		} else {
 			if (!strcmp(word, token_dict[token].tokenstr))
 				return i;
@@ -345,7 +347,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 	float arg_float;
 	uint32_t arg_uint, suffix_uint;
 	int done, arg_needed, arg_int, w, t, t_idx, size;
-	int cur_tsp, cur_tp, cur_bufsize;
+	int cur_tsp, cur_tp, cur_bufsize, i;
 	char *word, *suffix;
 
 	done = FALSE;
@@ -417,9 +419,27 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 					done = tl->one_command_per_line;
 				}
 			} else {
-				if (!complete_tokens)
-					tl->print(tl->user, "Invalid command."NL);
-				return FALSE;
+				/*
+				 * No matching token found, but maybe the token
+				 * set allows freeform strings?
+				 */
+				for (i = 0; token_stack[cur_tsp][i].token; i++) {
+					if (token_stack[cur_tsp][i].token == T_ARG_STRING)
+						break;
+				}
+				if (token_stack[cur_tsp][i].token) {
+					/* Add it in as a token. */
+					p->tokens[cur_tp++] = T_ARG_STRING;
+					p->tokens[cur_tp++] = cur_bufsize;
+					size = strlen(word) + 1;
+					memcpy(p->buf + cur_bufsize, word, size);
+					cur_bufsize += size;
+					p->buf[cur_bufsize] = 0;
+				} else {
+					if (!complete_tokens)
+						tl->print(tl->user, "Invalid command."NL);
+					return FALSE;
+				}
 			}
 		} else {
 			/* Parse word as the type in arg_needed */

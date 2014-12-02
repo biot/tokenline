@@ -46,14 +46,18 @@ t_token_dict dict[] = {
 t_token tokens_mode_calc[] = {
 	{ T_ARG_INT,
 		.help = "Operand" },
+	{ T_ARG_STRING,
+		.help = "Comment" },
 	{ T_PLUS },
 	{ T_EXIT,
 		.help = "Exit calc mode" },
+	{ }
 };
 
 t_token tokens_on_off[] = {
 	{ T_ON },
 	{ T_OFF },
+	{ }
 };
 
 t_token tokens_mode_device[] = {
