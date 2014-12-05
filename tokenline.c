@@ -544,7 +544,7 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 
 	(void)words;
 
-	if (tl->parsed.last_token_entry->help) {
+	if (tl->parsed.last_token_entry && tl->parsed.last_token_entry->help) {
 		tl->print(tl->user, tl->parsed.last_token_entry->help);
 		tl->print(tl->user, NL);
 	}
@@ -569,7 +569,8 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 			tl->print(tl->user, NL);
 		}
 	}
-	if (!tl->parsed.last_token_entry->help && !tokens)
+	if ((!tl->parsed.last_token_entry || !tl->parsed.last_token_entry->help)
+			&& !tokens)
 		tl->print(tl->user, NO_HELP);
 }
 
@@ -590,9 +591,7 @@ static void process_line(t_tokenline *tl)
 		if (!strcmp(tl->buf + words[0], "help")) {
 			/* Tokenize with errors turned off. */
 			tokenize(tl, words + 1, num_words - 1, &tokens, NULL);
-			if (tl->parsed.last_token_entry) {
-				show_help(tl, words, num_words);
-			}
+			show_help(tl, words, num_words);
 		} else if (!strcmp(tl->buf + words[0], "history")) {
 			history_show(tl);
 		} else {
