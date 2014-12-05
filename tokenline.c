@@ -544,9 +544,14 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 
 	(void)words;
 
-	if (tl->parsed.last_token_entry && tl->parsed.last_token_entry->help) {
-		tl->print(tl->user, tl->parsed.last_token_entry->help);
-		tl->print(tl->user, NL);
+	if (tl->parsed.last_token_entry) {
+		if (tl->parsed.last_token_entry->help_full) {
+			tl->print(tl->user, tl->parsed.last_token_entry->help_full);
+			tl->print(tl->user, NL);
+		} else if (tl->parsed.last_token_entry->help) {
+			tl->print(tl->user, tl->parsed.last_token_entry->help);
+			tl->print(tl->user, NL);
+		}
 	}
 
 	if (num_words == 1)
@@ -577,7 +582,7 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 static void process_line(t_tokenline *tl)
 {
 	t_token *tokens;
-	int words[TL_MAX_WORDS], num_words;
+	int words[TL_MAX_WORDS], num_words, i;
 
 	tl->print(tl->user, NL);
 	do {
@@ -589,8 +594,22 @@ static void process_line(t_tokenline *tl)
 		if (!num_words)
 			break;
 		if (!strcmp(tl->buf + words[0], "help")) {
-			/* Tokenize with errors turned off. */
-			tokenize(tl, words + 1, num_words - 1, &tokens, NULL);
+			if (num_words == 1) {
+				/*
+				 * Nothing to tokenize: find the help entry
+				 * if any so its help text can be shown.
+				 */
+				tokens = tl->token_levels[tl->token_level];
+				for (i = 0; tokens[i].token; i++) {
+					if (tokens[i].arg_type == T_ARG_HELP) {
+						tl->parsed.last_token_entry = &tokens[i];
+						break;
+					}
+				}
+			} else {
+				/* Tokenize with errors turned off. */
+				tokenize(tl, words + 1, num_words - 1, &tokens, NULL);
+			}
 			show_help(tl, words, num_words);
 		} else if (!strcmp(tl->buf + words[0], "history")) {
 			history_show(tl);

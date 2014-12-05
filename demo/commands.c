@@ -121,10 +121,12 @@ t_token tokens[] = {
 		.help = "Tap" },
 	{ T_CALC,
 		.subtokens = tokens_mode_calc,
-		.help = "Calculator" },
+		.help = "Calculator",
+		.help_full = "This wants to become a calculator some day." },
 	{ T_HELP,
 		.arg_type = T_ARG_HELP,
-		.help = "Available commands" },
+		.help = "Show help on available commands",
+		.help_full = "The following commands are available:" },
 	{ }
 };
 

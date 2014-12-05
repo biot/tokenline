@@ -44,6 +44,7 @@ typedef struct token {
 	uint16_t flags;
 	struct token *subtokens;
 	char *help;
+	char *help_full;
 } t_token;
 
 typedef struct tokenline_parsed {
