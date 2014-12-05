@@ -28,6 +28,7 @@ static void line_clear(t_tokenline *tl);
 static void line_backspace(t_tokenline *tl);
 static void set_line(t_tokenline *tl, char *line);
 
+static char space[] = "               ";
 
 static void unsplit_line(t_tokenline *tl)
 {
@@ -540,7 +541,7 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 {
 	t_token *tokens;
 	int i;
-	char *s, space[] = "               ";
+	char *s;
 
 	(void)words;
 
@@ -669,25 +670,37 @@ static void set_line(t_tokenline *tl, char *line)
 	}
 }
 
+static void print_token_and_help(t_tokenline *tl, t_token *token)
+{
+	char *s;
+
+	tl->print(tl->user, INDENT);
+	if (token->token < T_ARG_INT)
+		s = tl->token_dict[token->token].tokenstr;
+	else
+		s = arg_type_to_string(token->token);
+	tl->print(tl->user, s);
+	if (token->help) {
+		tl->print(tl->user, space + strlen(s));
+		tl->print(tl->user, token->help);
+	}
+}
+
 static void complete(t_tokenline *tl)
 {
-	t_token *tokens;
+	t_token *tokens, *partial;
 	unsigned int i;
-	int words[TL_MAX_WORDS], num_words, arg_needed, partial, multiple;
+	int words[TL_MAX_WORDS], num_words, arg_needed, multiple;
 	int reprompt, t;
 	char *word;
 
 	reprompt = FALSE;
 	if (!tl->pos) {
-		/* Tab on an empty line: show all top-level commmands. */
+		/* Tab on an empty line: show all commmands. */
 		tl->print(tl->user, NL);
 		tokens = tl->token_levels[tl->token_level];
 		for (i = 0; tokens[i].token; i++) {
-			tl->print(tl->user, INDENT);
-			if (tokens[i].token < T_ARG_INT)
-				tl->print(tl->user, tl->token_dict[tokens[i].token].tokenstr);
-			else
-				tl->print(tl->user, arg_type_to_string(tokens[i].token));
+			print_token_and_help(tl, &tokens[i]);
 			tl->print(tl->user, NL);
 		}
 		reprompt = TRUE;
@@ -698,7 +711,7 @@ static void complete(t_tokenline *tl)
 		if (tokenize(tl, words, num_words - 1, &tokens, NULL)) {
 			if (tokens) {
 				word = tl->buf + words[num_words - 1];
-				partial = 0;
+				partial = NULL;
 				multiple = FALSE;
 				for (t = 0; tokens[t].token; t++) {
 					if (tokens[t].token >= T_ARG_INT)
@@ -708,23 +721,21 @@ static void complete(t_tokenline *tl)
 							/* Not the first match, print previous one. */
 							multiple = TRUE;
 							tl->print(tl->user, NL);
-							tl->print(tl->user, INDENT);
-							tl->print(tl->user, tl->token_dict[partial].tokenstr);
+							print_token_and_help(tl, partial);
 						}
-						partial = tokens[t].token;
+						partial = &tokens[t];
 					}
 				}
 				if (partial) {
 					if (multiple) {
 						/* Last partial match. */
 						tl->print(tl->user, NL);
-						tl->print(tl->user, INDENT);
-						tl->print(tl->user, tl->token_dict[partial].tokenstr);
+						print_token_and_help(tl, partial);
 						tl->print(tl->user, NL);
 						reprompt = TRUE;
 					} else {
-						for (i = strlen(word); i < strlen(tl->token_dict[partial].tokenstr); i++)
-							add_char(tl, tl->token_dict[partial].tokenstr[i]);
+						for (i = strlen(word); i < strlen(tl->token_dict[partial->token].tokenstr); i++)
+							add_char(tl, tl->token_dict[partial->token].tokenstr[i]);
 						add_char(tl, ' ');
 					}
 				}
@@ -745,8 +756,7 @@ static void complete(t_tokenline *tl)
 				for (t = 0; tokens[t].token; t++) {
 					if (tokens[t].token >= T_ARG_INT)
 						continue;
-					tl->print(tl->user, INDENT);
-					tl->print(tl->user, tl->token_dict[tokens[t].token].tokenstr);
+					print_token_and_help(tl, &tokens[t]);
 					tl->print(tl->user, NL);
 					reprompt = TRUE;
 				}

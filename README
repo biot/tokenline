@@ -51,6 +51,7 @@ The following struct defines a single token:
 		uint16_t flags;
 		struct token *subtokens;
 		char *help;
+		char *help_full;
 	} t_token;
 
 Only the token field is required; all others are optional:
@@ -77,7 +78,13 @@ Only the token field is required; all others are optional:
    selecting the thing to show (see example). When not used with T_ARG_TOKEN,
    this table defines a new context.
  - help
-   A freeform string which will be shown when help for this token is requested.
+   A freeform string which will be shown next to this token on help or
+   completion for the table in which this entry is found. It should not be
+   longer than 60 characters.
+ - help_full
+   A freeform string which will be shown when help for this specific token is
+   requested. This can be more than one line; it is intended to be a more
+   detailed help text than the summary provided by the "help" field.
 
 The T_ARG_INT type may be specified as a token in the table: this allows
 free-standing numbers to be entered on the command line. See the demo
