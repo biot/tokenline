@@ -1,5 +1,6 @@
 Tokenline is a simple command-line shell interface, intended for systems
-with few resources.
+with few resources. It is available under the terms of the GNU GPL, version
+2 or later.
 
 
 FEATURES:
