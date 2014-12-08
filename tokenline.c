@@ -754,8 +754,6 @@ static void complete(t_tokenline *tl)
 			} else if (tokens) {
 				tl->print(tl->user, NL);
 				for (t = 0; tokens[t].token; t++) {
-					if (tokens[t].token >= T_ARG_INT)
-						continue;
 					print_token_and_help(tl, &tokens[t]);
 					tl->print(tl->user, NL);
 					reprompt = TRUE;
