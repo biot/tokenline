@@ -78,7 +78,7 @@ t_token tokens_mode_device[] = {
 
 t_token tokens_set[] = {
 	{ T_FREQUENCY,
-		.arg_type = T_ARG_FREQ,
+		.arg_type = T_ARG_FLOAT,
 		.help = "Frequency" },
 	{ T_NUMBER,
 		.arg_type = T_ARG_INT,

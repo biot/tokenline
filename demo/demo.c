@@ -65,10 +65,6 @@ static void dump_parsed(void *user, t_tokenline_parsed *p)
 			memcpy(&arg_float, p->buf + p->tokens[++i], sizeof(float));
 			printf("float %f\n", arg_float);
 			break;
-		case T_ARG_FREQ:
-			memcpy(&arg_float, p->buf + p->tokens[++i], sizeof(float));
-			printf("frequency %f\n", arg_float);
-			break;
 		case T_ARG_STRING:
 			printf("string '%s'\n", p->buf + p->tokens[++i]);
 			break;

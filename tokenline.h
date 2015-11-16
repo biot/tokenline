@@ -79,11 +79,11 @@ typedef struct tokenline {
 
 /* These share a number space with the tokens. */
 enum token_argtypes {
+	/* Optionally followed by k (kilo), m (mega) or g (giga). */
 	T_ARG_INT = 10000,
+	/* Optionally followed by k (kilo), m (mega) or g (giga). */
 	T_ARG_FLOAT,
 	T_ARG_STRING,
-	/* Floating point number optionally followed by khz, mhz or ghz.  */
-	T_ARG_FREQ,
 	/* Argument is one of the tokens in subtokens. */
 	T_ARG_TOKEN,
 	/* Integer argument suffixed to token with delimiter and integer. */

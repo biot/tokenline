@@ -289,8 +289,6 @@ static char *arg_type_to_string(int arg_type)
 		return "<integer>";
 	else if (arg_type == T_ARG_FLOAT)
 		return "<float>";
-	else if (arg_type == T_ARG_FREQ)
-		return "<frequency>";
 	else if (arg_type == T_ARG_STRING)
 		return "<string>";
 
@@ -448,9 +446,22 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			case T_ARG_INT:
 				arg_int = strtol(word, &suffix, 0);
 				if (*suffix) {
-					if (!complete_tokens)
-						tl->print(tl->user, "Invalid value."NL);
-					return FALSE;
+					switch(*suffix)
+					{
+					case 'k':
+						arg_int *= 1000;
+						break;
+					case 'm':
+						arg_int *= 1000000;
+						break;
+					case 'g':
+						arg_int *= 1000000000L;
+						break;
+					default:
+						if (!complete_tokens)
+							tl->print(tl->user, "Invalid value."NL);
+						return FALSE;
+					}
 				}
 				p->tokens[cur_tp++] = T_ARG_INT;
 				p->tokens[cur_tp++] = cur_bufsize;
@@ -460,31 +471,24 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			case T_ARG_FLOAT:
 				arg_float = strtof(word, &suffix);
 				if (*suffix) {
-					if (!complete_tokens)
-						tl->print(tl->user, "Invalid value."NL);
-					return FALSE;
-				}
-				p->tokens[cur_tp++] = T_ARG_FLOAT;
-				p->tokens[cur_tp++] = cur_bufsize;
-				memcpy(p->buf + cur_bufsize, &arg_float, sizeof(float));
-				cur_bufsize += sizeof(float);
-				break;
-			case T_ARG_FREQ:
-				arg_float = strtof(word, &suffix);
-				if (*suffix) {
-					if (!strcmp(suffix, "khz"))
+					switch(*suffix)
+					{
+					case 'k':
 						arg_float *= 1000;
-					else if (!strcmp(suffix, "mhz"))
+						break;
+					case 'm':
 						arg_float *= 1000000;
-					else if (!strcmp(suffix, "ghz"))
+						break;
+					case 'g':
 						arg_float *= 1000000000L;
-					else {
+						break;
+					default:
 						if (!complete_tokens)
 							tl->print(tl->user, "Invalid value."NL);
 						return FALSE;
 					}
 				}
-				p->tokens[cur_tp++] = T_ARG_FREQ;
+				p->tokens[cur_tp++] = T_ARG_FLOAT;
 				p->tokens[cur_tp++] = cur_bufsize;
 				memcpy(p->buf + cur_bufsize, &arg_float, sizeof(float));
 				cur_bufsize += sizeof(float);
