@@ -59,9 +59,8 @@ Only the token field is required; all others are optional:
  - arg_type
    If the token takes an argument, The type of that argument should
    be filled in here. The following are available:
-     T_ARG_INT      integer
-     T_ARG_FLOAT    floating-point value
-     T_ARG_FREQ     frequency, as float followed by khz, mhz or ghz
+     T_ARG_INT      unsigned integer value (32bits)
+     T_ARG_FLOAT    floating-point value (32bits)
      T_ARG_STRING   freeform string, should be quoted if it contains spaces
      T_ARG_TOKEN    one of a set of tokens in the subtokens field
      T_ARG_HELP     special type for the "help" command, see below
