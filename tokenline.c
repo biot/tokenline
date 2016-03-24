@@ -345,7 +345,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 	t_tokenline_parsed *p;
 	float arg_float;
 	uint32_t arg_uint, suffix_uint;
-	int done, arg_needed, arg_int, w, t, t_idx, size;
+	int done, arg_needed, w, t, t_idx, size;
 	int cur_tsp, cur_tp, cur_bufsize, i;
 	char *word, *suffix;
 
@@ -444,18 +444,18 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			/* Parse word as the type in arg_needed */
 			switch (arg_needed) {
 			case T_ARG_INT:
-				arg_int = strtol(word, &suffix, 0);
+				str_to_uint(word, &arg_uint);
 				if (*suffix) {
 					switch(*suffix)
 					{
 					case 'k':
-						arg_int *= 1000;
+						arg_uint *= 1000;
 						break;
 					case 'm':
-						arg_int *= 1000000;
+						arg_uint *= 1000000;
 						break;
 					case 'g':
-						arg_int *= 1000000000L;
+						arg_uint *= 1000000000L;
 						break;
 					default:
 						if (!complete_tokens)
@@ -465,8 +465,8 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				}
 				p->tokens[cur_tp++] = T_ARG_INT;
 				p->tokens[cur_tp++] = cur_bufsize;
-				memcpy(p->buf + cur_bufsize, &arg_int, sizeof(int));
-				cur_bufsize += sizeof(int);
+				memcpy(p->buf + cur_bufsize, &arg_uint, sizeof(uint32_t));
+				cur_bufsize += sizeof(uint32_t);
 				break;
 			case T_ARG_FLOAT:
 				arg_float = strtof(word, &suffix);
