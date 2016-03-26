@@ -57,7 +57,7 @@ static void dump_parsed(void *user, t_tokenline_parsed *p)
 	for (i = 0; p->tokens[i]; i++) {
 		printf("%d: ", i);
 		switch (p->tokens[i]) {
-		case T_ARG_INT:
+		case T_ARG_UINT:
 			memcpy(&arg_int, p->buf + p->tokens[++i], sizeof(int));
 			printf("integer %d\n", arg_int);
 			break;

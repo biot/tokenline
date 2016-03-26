@@ -44,7 +44,7 @@ t_token_dict dict[] = {
 };
 
 t_token tokens_mode_calc[] = {
-	{ T_ARG_INT,
+	{ T_ARG_UINT,
 		.help = "Operand" },
 	{ T_ARG_STRING,
 		.help = "Comment" },
@@ -81,7 +81,7 @@ t_token tokens_set[] = {
 		.arg_type = T_ARG_FLOAT,
 		.help = "Frequency" },
 	{ T_NUMBER,
-		.arg_type = T_ARG_INT,
+		.arg_type = T_ARG_UINT,
 		.help = "Number" },
 	{ }
 };
@@ -100,7 +100,7 @@ t_token tokens_show[] = {
 	{ T_VERSION,
 		.help = "Version" },
 	{ T_DEVICE,
-		.arg_type = T_ARG_INT,
+		.arg_type = T_ARG_UINT,
 		.help = "Device" },
 	{ T_DIRECTORY,
 		.arg_type = T_ARG_STRING,
