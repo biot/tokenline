@@ -59,7 +59,7 @@ Only the token field is required; all others are optional:
  - arg_type
    If the token takes an argument, The type of that argument should
    be filled in here. The following are available:
-     T_ARG_INT      integer
+     T_ARG_UINT     unsigned integer
      T_ARG_FLOAT    floating-point value
      T_ARG_FREQ     frequency, as float followed by khz, mhz or ghz
      T_ARG_STRING   freeform string, should be quoted if it contains spaces
@@ -87,7 +87,7 @@ Only the token field is required; all others are optional:
    requested. This can be more than one line; it is intended to be a more
    detailed help text than the summary provided by the "help" field.
 
-The T_ARG_INT type may be specified as a token in the table: this allows
+The T_ARG_UINT type may be specified as a token in the table: this allows
 free-standing numbers to be entered on the command line. See the demo
 application's 'calc' command for an example.
 
@@ -188,7 +188,7 @@ void tl_set_callback(t_tokenline *tl, tl_callback callback)
 
   Would be represented like this in the tokens field:
 
-	<T_SHOW> <T_DEVICE> <T_ARG_INT> 0 <T_FILE> <T_ARG_STRING> 4 0
+	<T_SHOW> <T_DEVICE> <T_ARG_UINT> 0 <T_FILE> <T_ARG_STRING> 4 0
                                     ^                         ^
         argument offset in buffer --|                       --|
 

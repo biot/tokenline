@@ -285,7 +285,7 @@ static int str_to_uint(char *s, uint32_t *out)
 
 static char *arg_type_to_string(int arg_type)
 {
-	if (arg_type == T_ARG_INT)
+	if (arg_type == T_ARG_UINT)
 		return "<integer>";
 	else if (arg_type == T_ARG_FLOAT)
 		return "<float>";
@@ -303,10 +303,10 @@ static int find_token(t_token *tokens, t_token_dict *token_dict, char *word)
 	/* Find exact match. */
 	for (i = 0; tokens[i].token; i++) {
 		token = tokens[i].token;
-		if (token == T_ARG_INT) {
+		if (token == T_ARG_UINT) {
 			if (str_to_uint(word, &arg_uint))
 				return i;
-		} else if (token > T_ARG_INT) {
+		} else if (token > T_ARG_UINT) {
 			continue;
 		} else {
 			if (!strcmp(word, token_dict[token].tokenstr))
@@ -318,7 +318,7 @@ static int find_token(t_token *tokens, t_token_dict *token_dict, char *word)
 	partial = -1;
 	for (i = 0; tokens[i].token; i++) {
 		token = tokens[i].token;
-		if (token >= T_ARG_INT)
+		if (token >= T_ARG_UINT)
 			continue;
 		if (strlen(word) >= strlen(token_dict[token].tokenstr))
 			continue;
@@ -345,7 +345,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 	t_tokenline_parsed *p;
 	float arg_float;
 	uint32_t arg_uint, suffix_uint;
-	int done, arg_needed, arg_int, w, t, t_idx, size;
+	int done, arg_needed, w, t, t_idx, size;
 	int cur_tsp, cur_tp, cur_bufsize, i;
 	char *word, *suffix;
 
@@ -378,7 +378,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1) {
 				t = token_stack[cur_tsp][t_idx].token;
 				p->tokens[cur_tp++] = t;
-				if (t == T_ARG_INT) {
+				if (t == T_ARG_UINT) {
 					/* Integer token. */
 					str_to_uint(word, &arg_uint);
 					p->tokens[cur_tp++] = cur_bufsize;
@@ -443,19 +443,19 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 		} else {
 			/* Parse word as the type in arg_needed */
 			switch (arg_needed) {
-			case T_ARG_INT:
-				arg_int = strtol(word, &suffix, 0);
+			case T_ARG_UINT:
+				str_to_uint(word, &arg_uint);
 				if (*suffix) {
 					switch(*suffix)
 					{
 					case 'k':
-						arg_int *= 1000;
+						arg_uint *= 1000;
 						break;
 					case 'm':
-						arg_int *= 1000000;
+						arg_uint *= 1000000;
 						break;
 					case 'g':
-						arg_int *= 1000000000L;
+						arg_uint *= 1000000000L;
 						break;
 					default:
 						if (!complete_tokens)
@@ -463,10 +463,10 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						return FALSE;
 					}
 				}
-				p->tokens[cur_tp++] = T_ARG_INT;
+				p->tokens[cur_tp++] = T_ARG_UINT;
 				p->tokens[cur_tp++] = cur_bufsize;
-				memcpy(p->buf + cur_bufsize, &arg_int, sizeof(int));
-				cur_bufsize += sizeof(int);
+				memcpy(p->buf + cur_bufsize, &arg_uint, sizeof(uint32_t));
+				cur_bufsize += sizeof(uint32_t);
 				break;
 			case T_ARG_FLOAT:
 				arg_float = strtof(word, &suffix);
@@ -567,7 +567,7 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 	if (tokens) {
 		for (i = 0; tokens[i].token; i++) {
 			tl->print(tl->user, INDENT);
-			if (tokens[i].token < T_ARG_INT)
+			if (tokens[i].token < T_ARG_UINT)
 				s = tl->token_dict[tokens[i].token].tokenstr;
 			else
 				s = arg_type_to_string(tokens[i].token);
@@ -679,7 +679,7 @@ static void print_token_and_help(t_tokenline *tl, t_token *token)
 	char *s;
 
 	tl->print(tl->user, INDENT);
-	if (token->token < T_ARG_INT)
+	if (token->token < T_ARG_UINT)
 		s = tl->token_dict[token->token].tokenstr;
 	else
 		s = arg_type_to_string(token->token);
@@ -718,7 +718,7 @@ static void complete(t_tokenline *tl)
 				partial = NULL;
 				multiple = FALSE;
 				for (t = 0; tokens[t].token; t++) {
-					if (tokens[t].token >= T_ARG_INT)
+					if (tokens[t].token >= T_ARG_UINT)
 						continue;
 					if (!strncmp(word, tl->token_dict[tokens[t].token].tokenstr, strlen(word))) {
 						if (partial) {

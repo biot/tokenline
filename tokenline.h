@@ -80,7 +80,7 @@ typedef struct tokenline {
 /* These share a number space with the tokens. */
 enum token_argtypes {
 	/* Optionally followed by k (kilo), m (mega) or g (giga). */
-	T_ARG_INT = 10000,
+	T_ARG_UINT = 10000,
 	/* Optionally followed by k (kilo), m (mega) or g (giga). */
 	T_ARG_FLOAT,
 	T_ARG_STRING,
