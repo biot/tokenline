@@ -134,7 +134,12 @@ static void history_up(t_tokenline *tl)
 	if (entry == -1)
 		return;
 	line_clear(tl);
-	set_line(tl, tl->hist_buf + entry);
+	if (tl->hist_begin != 0 && TL_MAX_HISTORY_SIZE == strlen(tl->hist_buf + entry) + entry) {
+		set_line(tl, tl->hist_buf + entry);
+		set_line(tl, tl->hist_buf);
+	} else {
+		set_line(tl, tl->hist_buf + entry);
+	}
 	tl->hist_step = entry;
 }
 
@@ -444,6 +449,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			/* Parse word as the type in arg_needed */
 			switch (arg_needed) {
 			case T_ARG_UINT:
+				arg_float = strtof(word, &suffix);
 				str_to_uint(word, &arg_uint);
 				if (*suffix) {
 					switch(*suffix)
