@@ -605,6 +605,8 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 	} else {
 		if (tl->parsed.last_token_entry) {
 			tokens = tl->parsed.last_token_entry->subtokens;
+		} else {
+			tokens = NULL;
 		}
 	}
 
