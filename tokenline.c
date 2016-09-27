@@ -599,11 +599,15 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 		}
 	}
 
-	if (num_words == 1)
+	if (num_words == 1) {
 		/* Just "help" -- global command overview. */
 		tokens = tl->token_levels[tl->token_level];
-	else
-		tokens = tl->parsed.last_token_entry->subtokens;
+	} else {
+		if (tl->parsed.last_token_entry) {
+			tokens = tl->parsed.last_token_entry->subtokens;
+		}
+	}
+
 	if (tokens) {
 		for (i = 0; tokens[i].token; i++) {
 			tl->print(tl->user, INDENT);
