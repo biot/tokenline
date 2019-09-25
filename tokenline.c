@@ -23,12 +23,28 @@
 #define INDENT   "   "
 #define NO_HELP  "No help available."NL
 #define NL       "\r\n"
+#define CHARS	 "[]{}/\\_-!^.&%~" 
 
 static void line_clear(t_tokenline *tl);
 static void line_backspace(t_tokenline *tl);
 static void set_line(t_tokenline *tl, char *line);
 
 static char space[] = "               ";
+
+static void add_charz(t_tokenline *tl, int c)
+{
+	if (tl->pos == tl->buf_len) {
+		tl->buf[tl->buf_len++] = c;
+		tl->buf[tl->buf_len] = 0;
+		tl->pos++;
+	} else {
+		memmove(tl->buf + tl->pos + 1, tl->buf + tl->pos,
+				tl->buf_len - tl->pos + 1);
+		tl->buf[tl->pos] = c;
+		tl->buf_len++;
+		tl->pos++;
+	}
+}
 
 static void unsplit_line(t_tokenline *tl)
 {
@@ -54,10 +70,10 @@ static void unsplit_line(t_tokenline *tl)
 
 static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 {
-	int state, quoted, i;
-
+	int state, quoted, tokened, i, x;
 	state = 1;
 	quoted = FALSE;
+	tokened = FALSE;
 	*num_words = 0;
 	for (i = 0; i < tl->buf_len && *num_words < TL_MAX_WORDS; i++) {
 		switch (state) {
@@ -67,10 +83,45 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 				continue;
 			if (tl->buf[i] == '"')
 				quoted = TRUE;
+
+			if (!quoted && strchr(CHARS, tl->buf[i])) {
+				if(tl->buf[i+1] != '\x20' && tl->buf[i+1] != 0 && tl->buf[i+1] != ':' && i < tl->buf_len) {
+					if((tl->buf_len+1 <= TL_MAX_LINE_LEN) && (*num_words+1 <=TL_MAX_WORDS)){
+						tl->pos=i+1;
+						add_charz(tl, '\x20');
+					} else {
+						tl->print(tl->user, "Too much tokens."NL);
+						unsplit_line(tl);
+						return FALSE;
+					}
+				}
+			}
 			words[(*num_words)++] = i + (quoted ? 1 : 0);
 			state = 2;
 			break;
 		case 2:
+			if(!quoted && tl->buf[i] != ' '){
+				tokened = FALSE;
+				for (x = 1; tl->token_dict[x].token; x++) {
+					if (!strncmp(tl->buf+words[(*num_words-1)], tl->token_dict[x].tokenstr,
+								i-words[(*num_words-1)]+1) && strlen(tl->token_dict[x].tokenstr) > 1) 
+					{
+						tokened = TRUE;
+					}
+				}
+				if (!tokened && strchr(CHARS, tl->buf[i])){
+					if (tl->buf[i-1] != '\x20' && tl->buf[i-1] != 0 && tl->buf[i-1] != ':' && i < tl->buf_len){
+						if((tl->buf_len+1 <= TL_MAX_LINE_LEN) && (*num_words+1 <= TL_MAX_WORDS)){
+							tl->pos=i;
+							add_charz(tl, '\x20');
+						} else {
+							tl->print(tl->user, "Too much tokens."NL);
+							unsplit_line(tl);
+							return FALSE;
+						}
+					}
+				} 
+			}
 			/* In a word. */
 			if (quoted && tl->buf[i] == '"') {
 				quoted = FALSE;
@@ -89,12 +140,13 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 		unsplit_line(tl);
 		return FALSE;
 	}
-	if (*num_words == TL_MAX_WORDS) {
+	if (*num_words >= TL_MAX_WORDS) {
 		if (!silent)
 			tl->print(tl->user, "Too many words."NL);
 		unsplit_line(tl);
 		return FALSE;
 	}
+	tl->pos=tl->buf_len;
 
 	return TRUE;
 }
@@ -420,6 +472,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						p->tokens[cur_tp++] = cur_bufsize;
 						memcpy(p->buf + cur_bufsize, &suffix_uint, sizeof(uint32_t));
 						cur_bufsize += sizeof(uint32_t);
+						*(suffix-1) = TL_TOKEN_DELIMITER;
 					}
 				}
 				p->last_token_entry = &token_stack[cur_tsp][t_idx];
