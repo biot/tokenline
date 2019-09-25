@@ -265,14 +265,32 @@ static void history_add(t_tokenline *tl)
  * Converts string to uint32_t. Takes decimal, hex prefixed with 0x,
  * binary prefixed with 0b and octal prefixed with 0. Returns FALSE
  * if conversion in any of these fails.
+ * endptr: Reference to an object of type char*, whose value is set by 
+           the function to the next character in str after the numerical value.
+           This parameter can also be a null pointer, in which case it is not used.
  */
-static int str_to_uint(char *s, uint32_t *out)
+static int str_to_uint(char *s, uint32_t *out, char **endptr)
 {
 	int i;
 	char *suffix;
+	char character;
+
+	if (endptr != 0)
+		*endptr = NULL;
 
 	if (strncmp(s, "0b", 2)) {
 		*out = strtoul(s, &suffix, 0);
+		character = *suffix;
+		if (character == 'k' || 
+			character == 'm' ||
+			character == 'g' )
+		{
+			if (endptr != 0)
+				*endptr = suffix;
+
+			suffix++;
+		}
+
 		if (*suffix != '\0')
 			return FALSE;
 	} else {
@@ -309,7 +327,7 @@ static int find_token(t_token *tokens, t_token_dict *token_dict, char *word)
 	for (i = 0; tokens[i].token; i++) {
 		token = tokens[i].token;
 		if (token == T_ARG_UINT) {
-			if (str_to_uint(word, &arg_uint))
+			if (str_to_uint(word, &arg_uint, NULL))
 				return i;
 		} else if (token > T_ARG_UINT) {
 			continue;
@@ -372,7 +390,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			/* Token needed. */
 			if ((suffix = strchr(word, TL_TOKEN_DELIMITER))) {
 				*suffix++ = 0;
-				if (!str_to_uint(suffix, &suffix_uint)) {
+				if (!str_to_uint(suffix, &suffix_uint, NULL)) {
 					tl->print(tl->user, "Invalid number."NL);
 					return FALSE;
 				}
@@ -385,7 +403,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				p->tokens[cur_tp++] = t;
 				if (t == T_ARG_UINT) {
 					/* Integer token. */
-					str_to_uint(word, &arg_uint);
+					str_to_uint(word, &arg_uint, NULL);
 					p->tokens[cur_tp++] = cur_bufsize;
 					memcpy(p->buf + cur_bufsize, &arg_uint, sizeof(uint32_t));
 					cur_bufsize += sizeof(uint32_t);
@@ -449,8 +467,13 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 			/* Parse word as the type in arg_needed */
 			switch (arg_needed) {
 			case T_ARG_UINT:
-				str_to_uint(word, &arg_uint);
-				if (*suffix) {
+				if( str_to_uint(word, &arg_uint, &suffix) == FALSE)
+				{
+					if (!complete_tokens)
+						tl->print(tl->user, "Invalid value."NL);
+					return FALSE;
+				}
+				if (suffix) {
 					switch(*suffix)
 					{
 					case 'k':
@@ -475,7 +498,19 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				break;
 			case T_ARG_FLOAT:
 				arg_float = strtof(word, &suffix);
+				if( arg_float == 0.0F )
+				{
+					if (!complete_tokens)
+						tl->print(tl->user, "Invalid value."NL);
+					return FALSE;
+				}
 				if (*suffix) {
+					if( strlen(suffix) > 1 )
+					{
+						if (!complete_tokens)
+							tl->print(tl->user, "Invalid value."NL);
+						return FALSE;
+					}
 					switch(*suffix)
 					{
 					case 'k':
@@ -564,11 +599,17 @@ static void show_help(t_tokenline *tl, int *words, int num_words)
 		}
 	}
 
-	if (num_words == 1)
+	if (num_words == 1) {
 		/* Just "help" -- global command overview. */
 		tokens = tl->token_levels[tl->token_level];
-	else
-		tokens = tl->parsed.last_token_entry->subtokens;
+	} else {
+		if (tl->parsed.last_token_entry) {
+			tokens = tl->parsed.last_token_entry->subtokens;
+		} else {
+			tokens = NULL;
+		}
+	}
+
 	if (tokens) {
 		for (i = 0; tokens[i].token; i++) {
 			tl->print(tl->user, INDENT);
