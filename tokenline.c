@@ -456,7 +456,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				suffix_uint = 0;
 			}
 
-			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1 && word[0] != 0x22) {
+			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1 && word[0] != '"') {
 				t = token_stack[cur_tsp][t_idx].token;
 				p->tokens[cur_tp++] = t;
 				if (t == T_ARG_UINT) {
@@ -511,7 +511,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				if (token_stack[cur_tsp][i].token) {
 					/* Add it in as a token. */
 					p->tokens[cur_tp++] = T_ARG_STRING;
-					if (word[0] != 0x22) {
+					if (word[0] != '"') {
 						p->tokens[cur_tp++] = cur_bufsize;
 						size = strlen(word) + 1;
 						memcpy(p->buf + cur_bufsize, word, size);
@@ -600,7 +600,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				break;
 			case T_ARG_STRING:
 				p->tokens[cur_tp++] = T_ARG_STRING;
-				if (word[0] != 0x22) {
+				if (word[0] != '"') {
 					p->tokens[cur_tp++] = cur_bufsize;
 					size = strlen(word) + 1;
 					memcpy(p->buf + cur_bufsize, word, size);
@@ -608,7 +608,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 					p->tokens[cur_tp++] = cur_bufsize + 1;
 					size = strlen(word + 1) + 1;
 					memcpy(p->buf + cur_bufsize + 1, word + 1, size);
-					}
+				}
 				cur_bufsize += size;
 				p->buf[cur_bufsize] = 0;
 				break;
