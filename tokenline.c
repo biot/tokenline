@@ -86,7 +86,7 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 
 			if (!quoted && strchr(CHARS, tl->buf[i])) {
 				if(tl->buf[i+1] != '\x20' && tl->buf[i+1] != 0 && tl->buf[i+1] != ':' && i < tl->buf_len) {
-					if((tl->buf_len+1 <= TL_MAX_LINE_LEN) && (*num_words+1 <=TL_MAX_WORDS)){
+					if((tl->buf_len+2 <= TL_MAX_LINE_LEN) && (*num_words+1 <=TL_MAX_WORDS)){
 						tl->pos=i+1;
 						add_charz(tl, '\x20');
 					} else {
@@ -96,7 +96,7 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 					}
 				}
 			}
-			words[(*num_words)++] = i + (quoted ? 1 : 0);
+			words[(*num_words)++] = i ;
 			state = 2;
 			break;
 		case 2:
@@ -111,7 +111,7 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 				}
 				if (!tokened && strchr(CHARS, tl->buf[i])){
 					if (tl->buf[i-1] != '\x20' && tl->buf[i-1] != 0 && tl->buf[i-1] != ':' && i < tl->buf_len){
-						if((tl->buf_len+1 <= TL_MAX_LINE_LEN) && (*num_words+1 <= TL_MAX_WORDS)){
+						if((tl->buf_len+2 <= TL_MAX_LINE_LEN) && (*num_words+1 <= TL_MAX_WORDS)){
 							tl->pos=i;
 							add_charz(tl, '\x20');
 						} else {
@@ -140,9 +140,15 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 		unsplit_line(tl);
 		return FALSE;
 	}
-	if (*num_words >= TL_MAX_WORDS) {
+	if (*num_words > TL_MAX_WORDS) {
 		if (!silent)
 			tl->print(tl->user, "Too many words."NL);
+		unsplit_line(tl);
+		return FALSE;
+	}
+	if (tl->buf_len+1 > TL_MAX_LINE_LEN) {
+		if (!silent)
+			tl->print(tl->user, "Too many chars."NL);
 		unsplit_line(tl);
 		return FALSE;
 	}
@@ -450,7 +456,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				suffix_uint = 0;
 			}
 
-			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1) {
+			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1 && word[0] != 0x22) {
 				t = token_stack[cur_tsp][t_idx].token;
 				p->tokens[cur_tp++] = t;
 				if (t == T_ARG_UINT) {
@@ -505,9 +511,15 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				if (token_stack[cur_tsp][i].token) {
 					/* Add it in as a token. */
 					p->tokens[cur_tp++] = T_ARG_STRING;
-					p->tokens[cur_tp++] = cur_bufsize;
-					size = strlen(word) + 1;
-					memcpy(p->buf + cur_bufsize, word, size);
+					if (word[0] != 0x22) {
+						p->tokens[cur_tp++] = cur_bufsize;
+						size = strlen(word) + 1;
+						memcpy(p->buf + cur_bufsize, word, size);
+					} else {
+						p->tokens[cur_tp++] = cur_bufsize + 1;
+    						size = strlen(word+1) + 1;
+	    					memcpy(p->buf + cur_bufsize + 1, word + 1, size);
+					}
 					cur_bufsize += size;
 					p->buf[cur_bufsize] = 0;
 				} else {
@@ -588,9 +600,15 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				break;
 			case T_ARG_STRING:
 				p->tokens[cur_tp++] = T_ARG_STRING;
-				p->tokens[cur_tp++] = cur_bufsize;
-				size = strlen(word) + 1;
-				memcpy(p->buf + cur_bufsize, word, size);
+				if (word[0] != 0x22) {
+					p->tokens[cur_tp++] = cur_bufsize;
+					size = strlen(word) + 1;
+					memcpy(p->buf + cur_bufsize, word, size);
+				} else {
+					p->tokens[cur_tp++] = cur_bufsize + 1;
+					size = strlen(word + 1) + 1;
+					memcpy(p->buf + cur_bufsize + 1, word + 1, size);
+					}
 				cur_bufsize += size;
 				p->buf[cur_bufsize] = 0;
 				break;
