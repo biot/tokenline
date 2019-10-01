@@ -23,28 +23,13 @@
 #define INDENT   "   "
 #define NO_HELP  "No help available."NL
 #define NL       "\r\n"
-#define CHARS	 "[]{}/\\_-!^.&%~" 
+#define HYDRABUS_SPECIAL_CHARS	 "[]{}/\\_-!^.&%~" 
 
 static void line_clear(t_tokenline *tl);
 static void line_backspace(t_tokenline *tl);
 static void set_line(t_tokenline *tl, char *line);
-
+static void add_char_silent(t_tokenline *tl, int c);
 static char space[] = "               ";
-
-static void add_charz(t_tokenline *tl, int c)
-{
-	if (tl->pos == tl->buf_len) {
-		tl->buf[tl->buf_len++] = c;
-		tl->buf[tl->buf_len] = 0;
-		tl->pos++;
-	} else {
-		memmove(tl->buf + tl->pos + 1, tl->buf + tl->pos,
-				tl->buf_len - tl->pos + 1);
-		tl->buf[tl->pos] = c;
-		tl->buf_len++;
-		tl->pos++;
-	}
-}
 
 static void unsplit_line(t_tokenline *tl)
 {
@@ -84,11 +69,11 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 			if (tl->buf[i] == '"')
 				quoted = TRUE;
 
-			if (!quoted && strchr(CHARS, tl->buf[i])) {
-				if(tl->buf[i+1] != '\x20' && tl->buf[i+1] != 0 && tl->buf[i+1] != ':' && i < tl->buf_len) {
+			if (!quoted && strchr(HYDRABUS_SPECIAL_CHARS, tl->buf[i])) {
+				if(tl->buf[i+1] != ' ' && tl->buf[i+1] != 0 && tl->buf[i+1] != ':' && i < tl->buf_len) {
 					if((tl->buf_len+2 <= TL_MAX_LINE_LEN) && (*num_words+1 <=TL_MAX_WORDS)){
 						tl->pos=i+1;
-						add_charz(tl, '\x20');
+						add_char_silent(tl, ' ');
 					} else {
 						tl->print(tl->user, "Too much tokens."NL);
 						unsplit_line(tl);
@@ -109,11 +94,11 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 						tokened = TRUE;
 					}
 				}
-				if (!tokened && strchr(CHARS, tl->buf[i])){
-					if (tl->buf[i-1] != '\x20' && tl->buf[i-1] != 0 && tl->buf[i-1] != ':' && i < tl->buf_len){
+				if (!tokened && strchr(HYDRABUS_SPECIAL_CHARS, tl->buf[i])){
+					if (tl->buf[i-1] != ' ' && tl->buf[i-1] != 0 && tl->buf[i-1] != ':' && i < tl->buf_len){
 						if((tl->buf_len+2 <= TL_MAX_LINE_LEN) && (*num_words+1 <= TL_MAX_WORDS)){
 							tl->pos=i;
-							add_charz(tl, '\x20');
+							add_char_silent(tl, ' ');
 						} else {
 							tl->print(tl->user, "Too much tokens."NL);
 							unsplit_line(tl);
@@ -749,6 +734,21 @@ static void process_line(t_tokenline *tl)
 	tl->pos = 0;
 	tl->hist_step = -1;
 	tl->print(tl->user, tl->prompt);
+}
+
+static void add_char_silent(t_tokenline *tl, int c)
+{
+	if (tl->pos == tl->buf_len) {
+		tl->buf[tl->buf_len++] = c;
+		tl->buf[tl->buf_len] = 0;
+		tl->pos++;
+	} else {
+		memmove(tl->buf + tl->pos + 1, tl->buf + tl->pos,
+				tl->buf_len - tl->pos + 1);
+		tl->buf[tl->pos] = c;
+		tl->buf_len++;
+		tl->pos++;
+	}
 }
 
 static void add_char(t_tokenline *tl, int c)
