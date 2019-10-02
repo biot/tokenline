@@ -495,18 +495,19 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				}
 				if (token_stack[cur_tsp][i].token) {
 					/* Add it in as a token. */
-					p->tokens[cur_tp++] = T_ARG_STRING;
-					if (word[0] != '"') {
-						p->tokens[cur_tp++] = cur_bufsize;
-						size = strlen(word) + 1;
-						memcpy(p->buf + cur_bufsize, word, size);
-					} else {
+					if (word[0] == '"' && word[1] != 0) {
+						p->tokens[cur_tp++] = T_ARG_STRING;
 						p->tokens[cur_tp++] = cur_bufsize + 1;
-    						size = strlen(word+1) + 1;
-	    					memcpy(p->buf + cur_bufsize + 1, word + 1, size);
+						size = strlen(word + 1) + 1;
+						memcpy(p->buf + cur_bufsize + 1, word + 1, size);
+						cur_bufsize += size;
+						p->buf[cur_bufsize] = 0;
+					} else if (word[0] == '"' && word[1] == 0){
+						cur_bufsize += 2;
+					} else {
+						tl->print(tl->user, "Invalid command."NL);
+						return FALSE;
 					}
-					cur_bufsize += size;
-					p->buf[cur_bufsize] = 0;
 				} else {
 					if (!complete_tokens)
 						tl->print(tl->user, "Invalid command."NL);
