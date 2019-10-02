@@ -28,6 +28,7 @@
 static void line_clear(t_tokenline *tl);
 static void line_backspace(t_tokenline *tl);
 static void set_line(t_tokenline *tl, char *line);
+static void add_char(t_tokenline *tl, int c);
 static void add_char_silent(t_tokenline *tl, int c);
 static char space[] = "               ";
 
@@ -506,6 +507,15 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						cur_bufsize += 2;
 					} else {
 						tl->print(tl->user, "Invalid command."NL);
+						for (i = 0; i < num_words; i++) {
+							tl->print(tl->user, tl->buf + words[i]);
+							tl->print(tl->user, " ");
+						}
+						tl->print(tl->user,NL);
+						for(i=0; i < words[w];i++){
+							tl->print(tl->user,"-");
+						}
+						tl->print(tl->user,"^"NL);
 						return FALSE;
 					}
 				} else {
