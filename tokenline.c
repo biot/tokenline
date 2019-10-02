@@ -511,11 +511,11 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 							tl->print(tl->user, tl->buf + words[i]);
 							tl->print(tl->user, " ");
 						}
-						tl->print(tl->user,NL);
-						for(i=0; i < words[w];i++){
-							tl->print(tl->user,"-");
+						tl->print(tl->user, NL);
+						for(i = 0; i < words[w]; i++){
+							tl->print(tl->user, "-");
 						}
-						tl->print(tl->user,"^"NL);
+						tl->print(tl->user, "^"NL);
 						return FALSE;
 					}
 				} else {
