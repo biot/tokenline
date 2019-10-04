@@ -20,9 +20,9 @@
 
 #include <stdint.h>
 
-#define TL_MAX_LINE_LEN         128
+#define TL_MAX_LINE_LEN         128 //=>127 input chars max
 #define TL_MAX_ESCAPE_LEN       8
-#define TL_MAX_WORDS            64
+#define TL_MAX_WORDS            64 //=>62 - 63 tokens depending on type
 #define TL_MAX_TOKEN_LEVELS     8
 #define TL_MAX_HISTORY_SIZE     512
 #define TL_TOKEN_DELIMITER      ':'
