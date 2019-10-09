@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Bert Vermeulen <bert@biot.com>
+ * Copyright (C) 2019 Karim SUDKI
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +97,7 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 						tokened = TRUE;
 					}
 				}
-				if (!tokened && strchr(HYDRABUS_SPECIAL_CHARS, tl->buf[i])){
+				if (!tokened && (strchr(HYDRABUS_SPECIAL_CHARS, tl->buf[i]) || tl->buf[i] == '"')){
 					if (tl->buf[i-1] != ' ' && tl->buf[i-1] != 0 && tl->buf[i-1] != ':') {
 						if((tl->buf_len + 1 < TL_MAX_LINE_LEN) && (*num_words + 1 < TL_MAX_WORDS)){
 							tl->pos=i;
