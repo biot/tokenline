@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Bert Vermeulen <bert@biot.com>
+ * Copyright (C) 2019 Karim SUDKI
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,11 +73,12 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 
 			if (!quoted && strchr(HYDRABUS_SPECIAL_CHARS, tl->buf[i])) {
 				if(tl->buf[i+1] != ' ' && tl->buf[i+1] != 0 && tl->buf[i+1] != ':' && i < tl->buf_len) {
-					if((tl->buf_len+2 <= TL_MAX_LINE_LEN) && (*num_words+1 <=TL_MAX_WORDS)){
+					if((tl->buf_len + 1 < TL_MAX_LINE_LEN) && (*num_words + 1 < TL_MAX_WORDS)) {
 						tl->pos=i+1;
 						add_char_silent(tl, ' ');
 					} else {
-						tl->print(tl->user, "Too much tokens."NL);
+						if (!silent)
+							tl->print(tl->user, "Uncompressed form too big"NL);
 						unsplit_line(tl);
 						return FALSE;
 					}
@@ -95,13 +97,14 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 						tokened = TRUE;
 					}
 				}
-				if (!tokened && strchr(HYDRABUS_SPECIAL_CHARS, tl->buf[i])){
-					if (tl->buf[i-1] != ' ' && tl->buf[i-1] != 0 && tl->buf[i-1] != ':' && i < tl->buf_len){
-						if((tl->buf_len+2 <= TL_MAX_LINE_LEN) && (*num_words+1 <= TL_MAX_WORDS)){
+				if (!tokened && (strchr(HYDRABUS_SPECIAL_CHARS, tl->buf[i]) || tl->buf[i] == '"')){
+					if (tl->buf[i-1] != ' ' && tl->buf[i-1] != 0 && tl->buf[i-1] != ':') {
+						if((tl->buf_len + 1 < TL_MAX_LINE_LEN) && (*num_words + 1 < TL_MAX_WORDS)){
 							tl->pos=i;
 							add_char_silent(tl, ' ');
 						} else {
-							tl->print(tl->user, "Too much tokens."NL);
+							if (!silent)
+								tl->print(tl->user, "Uncompressed form too big"NL);
 							unsplit_line(tl);
 							return FALSE;
 						}
@@ -112,6 +115,17 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 			if (quoted && tl->buf[i] == '"') {
 				quoted = FALSE;
 				tl->buf[i] = 0;
+				if (tl->buf[i+1] != ' ') { 
+					if((tl->buf_len + 1 < TL_MAX_LINE_LEN) && (*num_words + 1 < TL_MAX_WORDS)){
+						tl->pos=i+1;
+						add_char_silent(tl, ' ');
+					} else {
+						if (!silent)
+							tl->print(tl->user, "Uncompressed form too big"NL);
+						unsplit_line(tl);
+						return FALSE;
+                        		} 
+                		}
 				state = 1;
 			} else if (!quoted && tl->buf[i] == ' ') {
 				tl->buf[i] = 0;
@@ -126,18 +140,13 @@ static int split_line(t_tokenline *tl, int *words, int *num_words, int silent)
 		unsplit_line(tl);
 		return FALSE;
 	}
-	if (*num_words > TL_MAX_WORDS) {
+	if (*num_words > TL_MAX_WORDS - 1) {
 		if (!silent)
 			tl->print(tl->user, "Too many words."NL);
 		unsplit_line(tl);
 		return FALSE;
 	}
-	if (tl->buf_len+1 > TL_MAX_LINE_LEN) {
-		if (!silent)
-			tl->print(tl->user, "Too many chars."NL);
-		unsplit_line(tl);
-		return FALSE;
-	}
+	
 	tl->pos=tl->buf_len;
 
 	return TRUE;
@@ -444,10 +453,18 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 
 			if ((t_idx = find_token(token_stack[cur_tsp], tl->token_dict, word)) > -1 && word[0] != '"') {
 				t = token_stack[cur_tsp][t_idx].token;
+				if (!(cur_tp + 1 < TL_MAX_WORDS)){
+					tl->print(tl->user, "Too many words."NL);
+					return FALSE;
+				}
 				p->tokens[cur_tp++] = t;
 				if (t == T_ARG_UINT) {
 					/* Integer token. */
 					str_to_uint(word, &arg_uint, NULL);
+					if (!(cur_tp + 1 < TL_MAX_WORDS)){
+						tl->print(tl->user, "Too many words."NL);
+						return FALSE;
+					}
 					p->tokens[cur_tp++] = cur_bufsize;
 					memcpy(p->buf + cur_bufsize, &arg_uint, sizeof(uint32_t));
 					cur_bufsize += sizeof(uint32_t);
@@ -460,6 +477,10 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						return FALSE;
 					}
 					if (suffix_uint > 1) {
+						if (!(cur_tp + 2 < TL_MAX_WORDS)){
+							tl->print(tl->user, "Too many words."NL);
+							return FALSE;
+						}
 						p->tokens[cur_tp++] = T_ARG_TOKEN_SUFFIX_INT;
 						p->tokens[cur_tp++] = cur_bufsize;
 						memcpy(p->buf + cur_bufsize, &suffix_uint, sizeof(uint32_t));
@@ -497,6 +518,10 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				if (token_stack[cur_tsp][i].token) {
 					/* Add it in as a token. */
 					if (word[0] == '"' && word[1] != 0) {
+						if (!(cur_tp + 2 < TL_MAX_WORDS)){
+							tl->print(tl->user, "Too many words."NL);
+							return FALSE;
+						}
 						p->tokens[cur_tp++] = T_ARG_STRING;
 						p->tokens[cur_tp++] = cur_bufsize + 1;
 						size = strlen(word + 1) + 1;
@@ -509,10 +534,13 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						tl->print(tl->user, "Invalid command."NL);
 						for (i = 0; i < num_words; i++) {
 							tl->print(tl->user, tl->buf + words[i]);
+							if (*(tl->buf + words[i])  == '"') {
+								tl->print(tl->user, "\"");
+							}
 							tl->print(tl->user, " ");
 						}
 						tl->print(tl->user, NL);
-						for(i = 0; i < words[w]; i++){
+						for(i = 0; i < words[w]; i++) {
 							tl->print(tl->user, "-");
 						}
 						tl->print(tl->user, "^"NL);
@@ -552,6 +580,10 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						return FALSE;
 					}
 				}
+				if (!(cur_tp + 2 < TL_MAX_WORDS)){
+					tl->print(tl->user, "Too many words."NL);
+					return FALSE;
+				}
 				p->tokens[cur_tp++] = T_ARG_UINT;
 				p->tokens[cur_tp++] = cur_bufsize;
 				memcpy(p->buf + cur_bufsize, &arg_uint, sizeof(uint32_t));
@@ -589,12 +621,20 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						return FALSE;
 					}
 				}
+				if (!(cur_tp + 2 < TL_MAX_WORDS)){
+					tl->print(tl->user, "Too many words."NL);
+					return FALSE;
+				}
 				p->tokens[cur_tp++] = T_ARG_FLOAT;
 				p->tokens[cur_tp++] = cur_bufsize;
 				memcpy(p->buf + cur_bufsize, &arg_float, sizeof(float));
 				cur_bufsize += sizeof(float);
 				break;
 			case T_ARG_STRING:
+				if (!(cur_tp + 2 < TL_MAX_WORDS)){
+					tl->print(tl->user, "Too many words."NL);
+					return FALSE;
+				}
 				p->tokens[cur_tp++] = T_ARG_STRING;
 				if (word[0] != '"') {
 					p->tokens[cur_tp++] = cur_bufsize;
@@ -610,6 +650,10 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 				break;
 			case T_ARG_TOKEN:
 				if ((t_idx = find_token(arg_tokens, tl->token_dict, word)) > -1) {
+					if (!(cur_tp + 1 < TL_MAX_WORDS)){
+						tl->print(tl->user, "Too many words."NL);
+						return FALSE;
+					}
 					p->tokens[cur_tp++] = arg_tokens[t_idx].token;
 					p->last_token_entry = &arg_tokens[t_idx];
 				} else {
@@ -868,7 +912,9 @@ static void complete(t_tokenline *tl)
 					} else {
 						for (i = strlen(word); i < strlen(tl->token_dict[partial->token].tokenstr); i++)
 							add_char(tl, tl->token_dict[partial->token].tokenstr[i]);
-						add_char(tl, ' ');
+
+						if(tl->pos+1 < TL_MAX_LINE_LEN - 1)
+							add_char(tl, ' ');
 					}
 				}
 			}
