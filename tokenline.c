@@ -24,7 +24,7 @@
 #define INDENT   "   "
 #define NO_HELP  "No help available."NL
 #define NL       "\r\n"
-#define HYDRABUS_SPECIAL_CHARS	 "[]{}/\\_-!^.&%~" 
+#define HYDRABUS_SPECIAL_CHARS	 "[]{}/\\_-!^&%~" 
 
 static void line_clear(t_tokenline *tl);
 static void line_backspace(t_tokenline *tl);
