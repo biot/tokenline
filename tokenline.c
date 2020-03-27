@@ -525,7 +525,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 						p->tokens[cur_tp++] = T_ARG_STRING;
 						p->tokens[cur_tp++] = cur_bufsize + 1;
 						size = strlen(word + 1) + 1;
-						memcpy(p->buf + cur_bufsize + 1, word + 1, size);
+						memcpy(p->buf + cur_bufsize, word + 1, size);
 						cur_bufsize += size;
 						p->buf[cur_bufsize] = 0;
 					} else if (word[0] == '"' && word[1] == 0){
