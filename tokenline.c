@@ -523,7 +523,7 @@ static int tokenize(t_tokenline *tl, int *words, int num_words,
 							return FALSE;
 						}
 						p->tokens[cur_tp++] = T_ARG_STRING;
-						p->tokens[cur_tp++] = cur_bufsize + 1;
+						p->tokens[cur_tp++] = cur_bufsize;
 						size = strlen(word + 1) + 1;
 						memcpy(p->buf + cur_bufsize, word + 1, size);
 						cur_bufsize += size;
